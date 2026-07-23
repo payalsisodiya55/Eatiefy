@@ -224,7 +224,7 @@ export default function HomeHeader({
       <div className="w-full bg-gradient-to-b from-amber-50/40 via-white to-white dark:from-[#1a1a1a] dark:to-[#0a0a0a] pb-3">
         
         {/* Static Location Row */}
-        <div className="px-4 pt-5 pb-3 flex items-center justify-between gap-3">
+        <div className="px-4 pt-5 pb-3 flex items-center justify-between gap-3 md:hidden">
           <div 
             className="flex items-center gap-1.5 cursor-pointer group min-w-0 flex-1"
             onClick={handleLocationClick}
@@ -289,7 +289,7 @@ export default function HomeHeader({
 
         {/* Sticky Search Bar (Clean flow) */}
         <div
-          className={`sticky z-[60] px-4 pb-3 transition-all duration-300 ${
+          className={`sticky z-[60] px-4 pb-3 transition-all duration-300 md:hidden ${
             isCategoryStuck 
               ? 'top-0 pt-3 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b dark:border-gray-800' 
               : 'top-2 pt-0 bg-transparent'
@@ -353,12 +353,12 @@ export default function HomeHeader({
         {/* Sliding Banner Carousel (Below Search Bar) */}
         {hasDynamicBanners && (
           <div 
-            className="px-4 py-2 relative overflow-hidden"
+            className="px-4 py-2 relative overflow-hidden max-w-md sm:max-w-xl md:max-w-6xl lg:max-w-7xl mx-auto w-full"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] overflow-hidden rounded-[24px] shadow-lg bg-gray-100 dark:bg-gray-800">
+            <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] md:aspect-[24/8] lg:aspect-[24/7] max-h-[140px] sm:max-h-[165px] md:max-h-[280px] lg:max-h-[360px] overflow-hidden rounded-[24px] shadow-lg bg-gray-100 dark:bg-gray-800">
               <div 
                 className="absolute inset-0 flex transition-transform duration-700 ease-in-out z-0"
                 style={{ transform: `translateX(-${currentSlide * 100}%)` }}

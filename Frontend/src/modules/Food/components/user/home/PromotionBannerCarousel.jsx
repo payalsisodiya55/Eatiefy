@@ -6,6 +6,7 @@ import api, { publicConfigGetOnce } from "@food/api";
 const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
   const [banners, setBanners] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState('forward');
   const [loading, setLoading] = useState(true);
   const autoSlideIntervalRef = useRef(null);
 
@@ -39,6 +40,7 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
 
     autoSlideIntervalRef.current = setInterval(() => {
       if (typeof document !== "undefined" && document.hidden) return;
+      setDirection('forward');
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, 5000);
   }, [banners.length]);
@@ -59,19 +61,21 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
 
   const handleNext = (e) => {
     e?.stopPropagation();
+    setDirection('forward');
     setCurrentIndex((prev) => (prev + 1) % banners.length);
     startAutoSlide();
   };
 
   const handlePrev = (e) => {
     e?.stopPropagation();
+    setDirection('backward');
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
     startAutoSlide();
   };
 
   if (loading) {
     return (
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 max-w-7xl mx-auto w-full">
         <div className="w-full h-32 sm:h-40 md:h-48 rounded-[24px] bg-gray-100 animate-pulse" />
       </div>
     );
@@ -80,16 +84,31 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
   if (!banners.length) return null;
 
   return (
-    <div className="px-4 py-4 relative group">
-      <div className="relative overflow-hidden rounded-[24px] shadow-lg aspect-[21/9] sm:aspect-[24/9]">
-        <AnimatePresence mode="wait">
+    <div className="px-4 py-4 relative group max-w-md sm:max-w-xl md:max-w-6xl lg:max-w-7xl mx-auto w-full">
+      <div className="relative overflow-hidden rounded-[24px] shadow-lg aspect-[21/9] sm:aspect-[24/9] md:aspect-[24/8] lg:aspect-[24/7] max-h-[140px] sm:max-h-[165px] md:max-h-[280px] lg:max-h-[360px]">
+        <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={banners[currentIndex]?._id?.$oid || banners[currentIndex]?._id || currentIndex}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            custom={direction}
+            variants={{
+              enter: (dir) => ({
+                x: dir === 'forward' ? "100%" : "-100%",
+                opacity: 1
+              }),
+              center: {
+                x: 0,
+                opacity: 1
+              },
+              exit: (dir) => ({
+                x: dir === 'forward' ? "-100%" : "100%",
+                opacity: 0
+              })
+            }}
+            initial="enter"
+            animate="center"
+            exit="exit"
             transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="w-full h-full"
+            className="absolute inset-0 w-full h-full"
           >
             <a 
               href={banners[currentIndex]?.ctaLink || "#"} 
@@ -112,13 +131,13 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
           <>
             <button
               onClick={handlePrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity z-30"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={handleNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity z-30"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -127,7 +146,7 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
 
         {/* Indicators */}
         {banners.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-30">
             {banners.map((_, idx) => (
               <div
                 key={idx}

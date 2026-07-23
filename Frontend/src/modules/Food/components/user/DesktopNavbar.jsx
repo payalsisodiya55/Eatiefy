@@ -149,13 +149,10 @@ export default function DesktopNavbar({ showLogo = true }) {
     return (
         <nav
             ref={navRef}
-            className={`hidden md:flex flex-col fixed top-0 left-0 right-0 z-50 py-2 transition-all duration-300 ${(isBannerRoute && !hasScrolledPastBanner)
-                ? "bg-transparent !bg-transparent border-0 shadow-none"
-                : "bg-white dark:bg-[#1a1a1a] border-b border-gray-200 dark:border-gray-800 shadow-sm"
-                }`}
+            className="hidden md:flex flex-col fixed top-0 left-0 right-0 z-50 py-2 transition-all duration-300 bg-white dark:bg-[#1a1a1a] border-b border-gray-200 dark:border-gray-800 shadow-sm"
         >
             {/* Top Row: Location - Search - Icons */}
-            <div className={`w-full ${(isBannerRoute && !hasScrolledPastBanner) ? "border-b border-transparent" : "border-b border-gray-100 dark:border-gray-800"}`}>
+            <div className="w-full border-b border-gray-100 dark:border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16 gap-4">
                         {/* Left: Logo & Location */}
@@ -303,7 +300,7 @@ export default function DesktopNavbar({ showLogo = true }) {
             </div>
 
             {/* Bottom Row: Navigation Tabs & Veg Mode */}
-            <div className={`w-full pb-3 ${(isBannerRoute && !hasScrolledPastBanner) ? "bg-transparent !bg-transparent" : "bg-white dark:bg-[#1a1a1a]"}`}>
+            <div className="w-full pb-3 bg-white dark:bg-[#1a1a1a] border-b border-gray-100 dark:border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-center h-12">
                         {/* Navigation Tabs - Centered with spacing */}
@@ -349,25 +346,7 @@ export default function DesktopNavbar({ showLogo = true }) {
                                 )}
                             </Link>
 
-                            {/* Dining Tab */}
-                            <Link
-                                to="/food/user/dining"
-                                className={`flex flex-col items-center gap-1 px-2 py-1 transition-colors relative group ${isDining
-                                    ? "text-orange-600 dark:text-orange-500"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-500"
-                                    }`}
-                            >
-                                <span className="text-sm font-bold tracking-wide uppercase">Dining</span>
-                                {isDining && (
-                                    <motion.div
-                                        layoutId="navIndicator"
-                                        className="absolute -bottom-3 left-0 right-0 h-0.5 bg-orange-600 dark:bg-orange-500"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
-                                )}
-                            </Link>
+
 
                             {/* Profile Tab */}
                             <Link

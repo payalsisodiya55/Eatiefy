@@ -2982,13 +2982,13 @@ export default function Home() {
       <section className="space-y-4 pt-4 sm:pt-6">
         <div className="px-4 flex items-center justify-between">
           <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-            What's on your mind today?
+            Categories
           </h2>
           <Link
             to="/food/user/categories"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 transition-colors">
-            View All
-            <ArrowRightLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            className="text-xs sm:text-sm font-bold text-[#659116] hover:text-[#5ECC11] transition-colors"
+            style={{ color: "var(--module-theme-color, #659116)" }}>
+            See All
           </Link>
         </div>
       </section>
@@ -3013,13 +3013,15 @@ export default function Home() {
                 className="flex-shrink-0 flex flex-col items-center gap-2 group transition-all duration-300 hover:-translate-y-1"
                 style={{ animation: `fade-in-up 0.5s ease-out forwards ${index * 0.05}s`, opacity: 0 }}
               >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 group-hover:border-[#EB590E] transition-colors">
-                  <OptimizedImage
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    sizes="80px"
-                  />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-gray-800 flex items-center justify-center p-1.5 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:border-[#659116]">
+                  <div className="w-full h-full rounded-full overflow-hidden">
+                    <OptimizedImage
+                      src={category.image}
+                      alt={category.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      sizes="80px"
+                    />
+                  </div>
                 </div>
                 <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 text-center truncate max-w-[72px]">
                   {category.name}
@@ -3034,8 +3036,8 @@ export default function Home() {
               className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer group"
               onClick={() => navigate("/food/user/categories")}
             >
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-orange-50 dark:bg-orange-950 flex items-center justify-center border border-orange-100 group-hover:border-[#EB590E] transition-all">
-                <Plus className="w-6 h-6 text-[#EB590E]" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/50 group-hover:border-[#659116] transition-all">
+                <Plus className="w-6 h-6 text-[#659116]" style={{ color: "var(--module-theme-color, #659116)" }} />
               </div>
               <span className="text-xs font-medium text-gray-700">See All</span>
             </div>
