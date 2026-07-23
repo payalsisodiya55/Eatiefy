@@ -289,17 +289,17 @@ export default function HomeHeader({
 
         {/* Sticky Search Bar (Clean flow) */}
         <div
-          className={`z-[60] px-4 pb-3 transition-all duration-300 md:hidden ${
+          className={`z-[60] transition-all duration-300 md:hidden ${
             isCategoryStuck 
-              ? 'fixed top-0 left-0 right-0 pt-3 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b dark:border-gray-800' 
-              : 'sticky top-2 pt-0 bg-transparent'
+              ? 'fixed top-0 left-0 right-0 h-[60px] flex items-center px-4 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl' 
+              : 'sticky top-2 px-4 pb-3 pt-0 bg-transparent'
           }`}
         >
           <div 
-            className={`relative z-[60] rounded-[1.5rem] flex items-center px-4 py-3.5 border cursor-pointer active:scale-[0.98] group pointer-events-auto ${
+            className={`relative z-[60] w-full rounded-[1.5rem] flex items-center px-4 border cursor-pointer active:scale-[0.98] group pointer-events-auto ${
               isCategoryStuck
-                ? "bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-white dark:border-gray-800 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
-                : "bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-800 shadow-sm"
+                ? "py-2.5 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-white dark:border-gray-800 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
+                : "py-3 bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-800 shadow-sm"
             }`}
             onClick={handleSearchFocus}
             onTouchStart={handleSearchFocus}
