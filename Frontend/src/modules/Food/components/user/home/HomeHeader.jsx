@@ -291,7 +291,7 @@ export default function HomeHeader({
         <div
           className={`z-[60] transition-all duration-300 md:hidden ${
             isCategoryStuck 
-              ? 'fixed top-0 left-0 right-0 h-[60px] flex items-center px-4 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl' 
+              ? 'fixed top-0 left-0 right-0 h-[72px] flex items-end pb-2.5 px-4 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl' 
               : 'sticky top-2 px-4 pb-3 pt-0 bg-transparent'
           }`}
         >

@@ -1211,7 +1211,7 @@ export default function Home() {
       const anchor = categoryAnchorRef.current;
       if (!anchor) return;
       // Use sentinel directly so blur and sticky release on the same scroll tick.
-      const shouldStick = anchor.getBoundingClientRect().top <= 60;
+      const shouldStick = anchor.getBoundingClientRect().top <= 72;
       commitStuckState(shouldStick);
     };
 
@@ -3259,9 +3259,9 @@ export default function Home() {
         <div ref={categoryAnchorRef} aria-hidden="true" />
 
         {/* Category Rail — permanently sticky using native CSS for 0 latency. */}
-        <div className={`sticky top-[60px] z-[50] transition-all duration-300 ${
+        <div className={`sticky top-[72px] z-[50] transition-all duration-300 ${
           isCategoryStuck 
-            ? 'bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b dark:border-gray-800' 
+            ? 'bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b border-gray-200/40 dark:border-gray-800/40' 
             : 'bg-transparent'
         }`}>
           {CategoryRailSection}

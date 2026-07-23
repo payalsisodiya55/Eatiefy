@@ -1052,7 +1052,7 @@ export default function Under250() {
                   src={bannerSrc}
                   alt={`Switch 99 Banner ${index + 1}`}
                   className="w-full h-full"
-                  objectFit="contain"
+                  objectFit="cover"
                   priority={index === 0}
                   sizes="100vw"
                 />
