@@ -3189,6 +3189,68 @@ export default function Home() {
 
         <PromotionBannerCarousel zoneId={zoneId} />
 
+        {recommendedForYouRestaurants.length > 0 && (
+          <motion.section
+            className="content-auto space-y-4 pt-4 sm:pt-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}>
+            <div className="px-4 flex items-center justify-between">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+                Recommended for you
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 px-4 pb-2">
+                {recommendedForYouRestaurants.map((restaurant, index) => {
+                  const restaurantSlug =
+                    restaurant.slug ||
+                    restaurant.name.toLowerCase().replace(/\s+/g, "-");
+                  return (
+                    <motion.div
+                      key={`recommended-${restaurant.mongoId || restaurant.id || restaurantSlug}`}
+                      initial={{ opacity: 0, y: 12 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.35, delay: index * 0.05 }}>
+                      <Link
+                        to={`/food/user/restaurants/${restaurantSlug}`}
+                        onClick={captureScrollBeforeRestaurantNav}
+                        className="block rounded-[20px] overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1a1a] shadow-sm hover:shadow-md transition-shadow">
+                        <div className="relative h-32 sm:h-36 md:h-40 bg-gray-50">
+                          <RestaurantImageCarousel
+                            restaurant={restaurant}
+                            backendOrigin={BACKEND_ORIGIN}
+                            className="h-32 sm:h-36 md:h-40"
+                            roundedClass="rounded-t-[20px]"
+                          />
+                        </div>
+                        <div className="p-3">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate tracking-tight">
+                            {restaurant.name}
+                          </p>
+                          <p className="text-[11px] text-gray-500 truncate mt-1">
+                            {restaurant.cuisine || "Multi-cuisine"}
+                          </p>
+                          <div className="flex items-center justify-between mt-2.5">
+                            <p className="text-[9px] sm:text-[10px] text-orange-600 font-bold flex items-center gap-1 uppercase tracking-wider">
+                              <Flame className="w-3.5 h-3.5 fill-orange-600" />
+                              Near & Fast
+                            </p>
+                            <div className="flex items-center gap-0.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                              <span className="pt-0.5">{Number(restaurant.rating) > 0 ? Number(restaurant.rating).toFixed(1) : "NEW"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.section>
+          )}
+
         {CategoryRailHeader}
 
         {/* Category sticky anchor sentinel — must be immediately before the category rail */}
@@ -3218,68 +3280,6 @@ export default function Home() {
 
 
         {HeroBannerSection}
-
-        {recommendedForYouRestaurants.length > 0 && (
-          <motion.section
-            className="content-auto space-y-4 pt-4 sm:pt-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}>
-            <div className="px-4 flex items-center justify-between">
-              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-                Recommended for you
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 px-4 pb-2">
-                {recommendedForYouRestaurants.map((restaurant, index) => {
-                  const restaurantSlug =
-                    restaurant.slug ||
-                    restaurant.name.toLowerCase().replace(/\s+/g, "-");
-                  return (
-                    <motion.div
-                      key={`recommended-${restaurant.mongoId || restaurant.id || restaurantSlug}`}
-                      initial={{ opacity: 0, y: 12 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.35, delay: index * 0.05 }}>
-                      <Link
-                        to={`/food/user/restaurants/${restaurantSlug}`}
-                        onClick={captureScrollBeforeRestaurantNav}
-                        className="block rounded-[20px] overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1a1a] shadow-sm hover:shadow-md transition-shadow">
-                        <div className="relative h-24 sm:h-28 md:h-32 bg-gray-50">
-                          <RestaurantImageCarousel
-                            restaurant={restaurant}
-                            backendOrigin={BACKEND_ORIGIN}
-                            className="h-24 sm:h-28 md:h-32"
-                            roundedClass="rounded-t-[20px]"
-                          />
-                          <div
-                            className={`absolute bottom-2 left-2 px-2 py-0.5 rounded-lg ${Number(restaurant.rating) > 0 ? "text-white font-medium" : "bg-gray-200/90 text-gray-600 font-medium"} text-[10px] shadow-lg border border-white/10`}
-                            style={Number(restaurant.rating) > 0 ? {
-                              backgroundColor: "var(--module-theme-color, #FA0272)",
-                              boxShadow: "0 4px 10px rgba(var(--module-theme-rgb, 250,2,114), 0.25)",
-                            } : undefined}
-                          >
-                            {Number(restaurant.rating) > 0 ? Number(restaurant.rating).toFixed(1) : "NEW"}
-                          </div>
-                        </div>
-                        <div className="p-2.5">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate tracking-tight">
-                            {restaurant.name}
-                          </p>
-                          <p className="text-[10px] text-orange-600 font-bold mt-1 flex items-center gap-1 uppercase tracking-wider">
-                            <Flame className="w-3.5 h-3.5 fill-orange-600" />
-                            Near & Fast
-                          </p>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.section>
-          )}
 
 
 

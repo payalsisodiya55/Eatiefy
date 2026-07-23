@@ -535,6 +535,7 @@ export default function LandingPageManagement() {
   const filteredRestaurantsForRecommended = useMemo(() => {
     const query = recommendedSearchQuery.trim().toLowerCase()
     return allRestaurants
+      .filter((restaurant) => restaurant.status === 'approved')
       .filter((restaurant) => {
         if (!query) return true
         return restaurant.name?.toLowerCase().includes(query) ||
