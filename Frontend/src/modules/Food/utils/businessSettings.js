@@ -13,7 +13,7 @@ import {
 
 const SETTINGS_KEY = 'food_business_settings';
 const DEFAULT_MODULE_POWER_SCANNING = {
-  user: { themeColor: "#FA0272", fontFamily: "Poppins" },
+  user: { themeColor: "#618E17", fontFamily: "Poppins" },
   restaurant: { themeColor: "#2563EB", fontFamily: "Poppins" },
   delivery: { themeColor: "#00B761", fontFamily: "Poppins" },
 };
@@ -38,6 +38,7 @@ const FONT_STACKS = {
 
 const LEGACY_BRAND_HEXES = [
   "#FA0272",
+  "#D6005E",
   "#00B761",
   "#2563EB",
   "#DC2626",
@@ -55,7 +56,7 @@ const LEGACY_BRAND_TAILWIND_COLORS = [
 const hexToRgbTuple = (hex) => {
   const raw = String(hex || "").trim();
   const normalized = raw.startsWith("#") ? raw.slice(1) : raw;
-  if (!/^[0-9A-Fa-f]{6}$/.test(normalized)) return "250,2,114";
+  if (!/^[0-9A-Fa-f]{6}$/.test(normalized)) return "97,142,23";
   const r = parseInt(normalized.slice(0, 2), 16);
   const g = parseInt(normalized.slice(2, 4), 16);
   const b = parseInt(normalized.slice(4, 6), 16);
@@ -232,11 +233,17 @@ const buildThemeOverrideCss = () => {
     .ring-primary {
       --tw-ring-color: var(--module-theme-color) !important;
     }
-    ${textSelectors.join(", ")}, ${hoverTextSelectors.join(", ")} {
+    ${textSelectors.join(", ")} {
       color: var(--module-theme-color) !important;
     }
-    ${bgSelectors.join(", ")}, ${hoverBgSelectors.join(", ")} {
+    ${hoverTextSelectors.join(", ")} {
+      color: var(--module-theme-hover-color, var(--module-theme-color)) !important;
+    }
+    ${bgSelectors.join(", ")} {
       background-color: var(--module-theme-color) !important;
+    }
+    ${hoverBgSelectors.join(", ")} {
+      background-color: var(--module-theme-hover-color, var(--module-theme-color)) !important;
     }
     ${borderSelectors.join(", ")} {
       border-color: var(--module-theme-color) !important;
@@ -263,7 +270,7 @@ const buildThemeOverrideCss = () => {
       --tw-gradient-stops: var(--tw-gradient-from), var(--module-theme-color), var(--tw-gradient-to) !important;
     }
     ${hoverBorderSelectors.join(", ")} {
-      border-color: var(--module-theme-color) !important;
+      border-color: var(--module-theme-hover-color, var(--module-theme-color)) !important;
     }
     ${twTextSelectors.join(", ")}, ${twHoverTextSelectors.join(", ")} {
       color: var(--module-theme-color) !important;
@@ -312,6 +319,25 @@ const buildThemeOverrideCss = () => {
     ${makeOpacityRuleBlock(viaOpacityRules, (alpha) =>
       `--tw-gradient-stops: var(--tw-gradient-from), rgba(var(--module-theme-rgb), ${alpha}), var(--tw-gradient-to) !important;`
     )}
+
+    .shadow-\\[0_12px_24px_rgba\\(250\\,2\\,114\\,0\\.3\\)\\] {
+      box-shadow: 0 12px 24px rgba(var(--module-theme-rgb), 0.3) !important;
+    }
+    .hover\\:shadow-\\[0_16px_32px_rgba\\(250\\,2\\,114\\,0\\.4\\)\\]:hover {
+      box-shadow: 0 16px 32px rgba(var(--module-theme-rgb), 0.4) !important;
+    }
+    .shadow-\\[0_20px_50px_-12px_rgba\\(250\\,2\\,114\\,0\\.5\\)\\] {
+      box-shadow: 0 20px 50px -12px rgba(var(--module-theme-rgb), 0.5) !important;
+    }
+    .shadow-\\[0_6px_24px_rgba\\(250\\,2\\,114\\,0\\.1\\)\\] {
+      box-shadow: 0 6px 24px rgba(var(--module-theme-rgb), 0.1) !important;
+    }
+    .shadow-\\[0_6px_16px_rgba\\(250\\,2\\,114\\,0\\.28\\)\\] {
+      box-shadow: 0 6px 16px rgba(var(--module-theme-rgb), 0.28) !important;
+    }
+    .shadow-\\[0_0_40px_rgba\\(250\\,2\\,114\\,0\\.4\\)\\] {
+      box-shadow: 0 0 40px rgba(var(--module-theme-rgb), 0.4) !important;
+    }
   `;
 };
 
@@ -319,7 +345,16 @@ const buildThemeOverrideCss = () => {
 let cachedSettings = (() => {
   try {
     const saved = localStorage.getItem(SETTINGS_KEY);
-    return saved ? JSON.parse(saved) : null;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Self-healing: if cached theme color does not match current code default, invalidate cache to trigger a fresh fetch
+      if (parsed?.powerScanning?.user?.themeColor !== DEFAULT_MODULE_POWER_SCANNING.user.themeColor) {
+        localStorage.removeItem(SETTINGS_KEY);
+        return null;
+      }
+      return parsed;
+    }
+    return null;
   } catch (e) {
     return null;
   }
@@ -474,14 +509,40 @@ export const getModulePowerScanning = (moduleName = "user", settingsOverride = n
   return { themeColor, fontFamily };
 };
 
+const getThemeHoverColor = (themeColor, moduleName) => {
+  const raw = String(themeColor || "").trim().toUpperCase();
+  if (raw === "#618E17") return "#4f7512";
+  if (raw === "#FA0272") return "#D6005E";
+  if (raw === "#2563EB") return "#1D4ED8";
+  if (raw === "#00B761") return "#059669";
+  return raw;
+};
+
+const getThemeGradient = (themeColor, moduleName) => {
+  const raw = String(themeColor || "").trim().toUpperCase();
+  const moduleKey = String(moduleName || "").trim().toLowerCase();
+  if (raw === "#618E17" || moduleKey === "user") {
+    return { start: "#588114", end: "#79ab1c" };
+  }
+  return { start: themeColor, end: themeColor };
+};
+
 export const applyModulePowerScanning = (moduleName = "user", settingsOverride = null) => {
   if (typeof document === "undefined") return;
   const { themeColor, fontFamily } = getModulePowerScanning(moduleName, settingsOverride);
   const fontStack = FONT_STACKS[fontFamily] || FONT_STACKS["Poppins"];
   const rgbTuple = hexToRgbTuple(themeColor);
+  const hoverColor = getThemeHoverColor(themeColor, moduleName);
+  const hoverRgb = hexToRgbTuple(hoverColor);
+  const gradient = getThemeGradient(themeColor, moduleName);
 
   document.documentElement.style.setProperty("--module-theme-color", themeColor);
   document.documentElement.style.setProperty("--module-theme-rgb", rgbTuple);
+  document.documentElement.style.setProperty("--module-theme-hover-color", hoverColor);
+  document.documentElement.style.setProperty("--module-theme-hover-rgb", hoverRgb);
+  document.documentElement.style.setProperty("--module-theme-gradient-start", gradient.start);
+  document.documentElement.style.setProperty("--module-theme-gradient-end", gradient.end);
+  document.documentElement.style.setProperty("--module-theme-gradient", `linear-gradient(135deg, ${gradient.start} 0%, ${gradient.end} 100%)`);
   document.documentElement.style.setProperty("--color-primary-orange", themeColor);
   document.documentElement.style.setProperty("--ring", themeColor);
   document.documentElement.style.setProperty("--module-font-family", fontStack);

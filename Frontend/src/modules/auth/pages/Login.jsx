@@ -175,7 +175,12 @@ export default function UnifiedOTPFastLogin() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col pt-0 sm:pt-0">
       {/* Top Banner section - Zomato Red */}
-      <div className="w-full bg-[#FA0272] dark:bg-[#D6005E] rounded-b-[2.5rem] p-6 text-center text-white relative overflow-hidden shadow-2xl">
+      <div
+        className="w-full rounded-b-[2.5rem] p-6 text-center text-white relative overflow-hidden shadow-2xl"
+        style={{
+          background: "var(--module-theme-gradient, linear-gradient(135deg, #588114 0%, #79ab1c 100%))"
+        }}
+      >
         <div className="absolute inset-0 bg-white/5 opacity-50 blur-3xl rounded-full -top-1/2 -left-1/4 animate-pulse" />
         <div className="absolute right-0 bottom-0 w-32 h-32 md:w-48 md:h-48 opacity-10 pointer-events-none">
            <svg viewBox="0 0 200 200" fill="currentColor">

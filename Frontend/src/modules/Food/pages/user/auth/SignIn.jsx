@@ -117,7 +117,7 @@ export default function SignIn() {
         className="relative h-[40dvh] w-full overflow-hidden flex flex-col items-center justify-center"
         style={{
           background:
-            "linear-gradient(135deg, rgba(var(--module-theme-rgb, 250,2,114), 0.94) 0%, var(--module-theme-color, #FA0272) 55%, rgba(var(--module-theme-rgb, 250,2,114), 0.82) 100%)",
+            "var(--module-theme-gradient, linear-gradient(135deg, #588114 0%, #79ab1c 100%))",
         }}
       >
         {/* Subtle Decorative Elements (No Blur) */}
