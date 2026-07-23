@@ -221,49 +221,21 @@ export default function HomeHeader({
 
   return (
     <>
-      <div
-        className="relative h-[340px] w-full overflow-hidden rounded-b-[2rem] shadow-[0_10px_40px_rgba(250,2,114,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="w-full bg-gradient-to-b from-amber-50/40 via-white to-white dark:from-[#1a1a1a] dark:to-[#0a0a0a] pb-3">
         
-        {/* Sliding Background Track */}
-        {hasDynamicBanners ? (
-          <div 
-            className="absolute inset-0 flex transition-transform duration-700 ease-in-out z-0"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-          >
-            {displayBanners.map((banner) => (
-              <div key={banner.id} className={`relative w-full h-full shrink-0 ${banner.bg}`}>
-                {banner.content}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div
-            className={`absolute inset-0 z-0 transition-opacity duration-300 ${
-              topBannersLoaded ? "bg-[#FA0272]" : "bg-gradient-to-br from-[#ff2d8d] via-[#FA0272] to-[#ff6a00] animate-pulse"
-            }`}
-          >
-            <div className="absolute top-0 left-1/4 w-32 h-32 bg-white/20 blur-[60px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 right-1/4 w-40 h-40 bg-white/10 blur-[80px] rounded-full pointer-events-none" />
-          </div>
-        )}
-
-        {/* Static Overlay Location Row */}
-        <div className="absolute top-0 inset-x-0 z-20 px-4 pt-5 flex items-center justify-between gap-3">
+        {/* Static Location Row */}
+        <div className="px-4 pt-5 pb-3 flex items-center justify-between gap-3">
           <div 
             className="flex items-center gap-1.5 cursor-pointer group min-w-0 flex-1"
             onClick={handleLocationClick}
           >
-            <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-md border border-white/20 hover:bg-white/30 transition-colors shadow-sm dark:bg-black/20 dark:border-white/10 dark:hover:bg-white/10 flex-shrink-0">
-              <MapPin className="h-4 w-4 text-gray-900 dark:text-white" />
+            <div className="bg-[#FA0272]/10 p-1.5 rounded-full border border-[#FA0272]/20 hover:bg-[#FA0272]/20 transition-colors shadow-sm dark:bg-black/20 dark:border-white/10 dark:hover:bg-white/10 flex-shrink-0">
+              <MapPin className="h-4 w-4 text-[#FA0272] dark:text-white" />
             </div>
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                <span className="text-[10px] font-bold text-gray-900/80 dark:text-white/80 uppercase tracking-wider">Deliver to</span>
-                <ChevronDown className="h-2.5 w-2.5 text-gray-900/80 dark:text-white/80" />
+                <span className="text-[10px] font-bold text-gray-500 dark:text-white/80 uppercase tracking-wider">Deliver to</span>
+                <ChevronDown className="h-2.5 w-2.5 text-gray-500 dark:text-white/80" />
               </div>
               <span className="text-sm font-bold text-gray-900 dark:text-white truncate drop-shadow-sm max-w-full">
                 {savedAddressText || (location?.area && location?.city 
@@ -276,9 +248,9 @@ export default function HomeHeader({
           <div className="flex items-center gap-2 flex-shrink-0">
             <div
               onClick={() => setIsNotificationsOpen(true)}
-              className="h-10 w-10 relative flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-sm cursor-pointer active:scale-95 transition-all hover:bg-white/30 dark:bg-black/20 dark:border-white/10 dark:hover:bg-white/10 flex-shrink-0"
+              className="h-10 w-10 relative flex items-center justify-center rounded-full bg-gray-100 border border-gray-200 shadow-sm cursor-pointer active:scale-95 transition-all hover:bg-gray-200 dark:bg-black/20 dark:border-white/10 dark:hover:bg-white/10 flex-shrink-0"
             >
-              <Bell className="h-[22px] w-[22px] text-gray-900 dark:text-white" />
+              <Bell className="h-[22px] w-[22px] text-gray-800 dark:text-white" />
               {unreadCount > 0 && (
                 <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-white animate-pulse dark:border-gray-900" />
               )}
@@ -286,7 +258,7 @@ export default function HomeHeader({
  
             {/* Veg Mode Toggle */}
             <div 
-              className="flex items-center gap-1.5 h-10 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-full px-2.5 border border-white/30 shadow-sm cursor-pointer hover:bg-white/30 dark:border-white/10 dark:hover:bg-white/10 active:scale-95 transition-all flex-shrink-0"
+              className="flex items-center gap-1.5 h-10 bg-gray-100 dark:bg-black/20 rounded-full px-2.5 border border-gray-200 shadow-sm cursor-pointer hover:bg-gray-200 dark:border-white/10 dark:hover:bg-white/10 active:scale-95 transition-all flex-shrink-0"
               onClick={() => handleVegModeChange && handleVegModeChange(!isVegMode)}
               ref={vegModeToggleRef}
             >
@@ -314,19 +286,105 @@ export default function HomeHeader({
             </div>
           </div>
         </div>
-        
-        {/* Carousel Pager Dots */}
-        {hasDynamicBanners && displayBanners.length > 1 && (
-          <div className="absolute bottom-2 inset-x-0 flex justify-center gap-1.5 z-20">
-            {displayBanners.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={() => setCurrentSlide(i)}
-                className={`h-1 rounded-full transition-all duration-300 ${i === currentSlide ? 'bg-black/60 w-3 dark:bg-white/80' : 'bg-black/20 w-1.5 dark:bg-white/30'}`}
+
+        {/* Sticky Search Bar (Clean flow) */}
+        <div
+          className={`sticky z-[60] px-4 pb-3 transition-all duration-300 ${
+            isCategoryStuck 
+              ? 'top-0 pt-3 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b dark:border-gray-800' 
+              : 'top-2 pt-0 bg-transparent'
+          }`}
+        >
+          <div 
+            className={`relative z-[60] rounded-[1.5rem] flex items-center px-4 py-3.5 border cursor-pointer active:scale-[0.98] group pointer-events-auto ${
+              isCategoryStuck
+                ? "bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-white dark:border-gray-800 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
+                : "bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-800 shadow-sm"
+            }`}
+            onClick={handleSearchFocus}
+            onTouchStart={handleSearchFocus}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleSearchFocus();
+              }
+            }}
+          >
+            <Search className="h-5 w-5 text-gray-400 mr-3 group-hover:text-[#FA0272] transition-colors duration-300 dark:text-gray-500" strokeWidth={2.5} />
+            <div className="flex-1 overflow-hidden relative h-5">
+              <input
+                type="text"
+                readOnly
+                aria-label="Search"
+                onFocus={handleSearchFocus}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-            ))}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={placeholderIndex}
+                  initial={{ y: 15, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -15, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="absolute inset-0 text-[14px] font-bold text-gray-500 dark:text-gray-400"
+                >
+                  {placeholders?.[placeholderIndex] || 'Search "pizza"'}
+                </motion.span>
+              </AnimatePresence>
+            </div>
+            <div 
+              className="bg-[#FA0272]/5 dark:bg-[#FA0272]/10 p-2 rounded-full border border-[#FA0272]/10 ml-2 group-hover:bg-[#FA0272]/10 transition-all flex items-center justify-center"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/user/search?voice=true');
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                navigate('/user/search?voice=true');
+              }}
+            >
+              <Mic className="h-4 w-4 text-[#FA0272]" strokeWidth={2.5} />
+            </div>
+          </div>
+        </div>
+
+        {/* Sliding Banner Carousel (Below Search Bar) */}
+        {hasDynamicBanners && (
+          <div 
+            className="px-4 py-2 relative overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] overflow-hidden rounded-[24px] shadow-lg bg-gray-100 dark:bg-gray-800">
+              <div 
+                className="absolute inset-0 flex transition-transform duration-700 ease-in-out z-0"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {displayBanners.map((banner) => (
+                  <div key={banner.id} className="relative w-full h-full shrink-0">
+                    {banner.content}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Carousel Pager Dots */}
+              {displayBanners.length > 1 && (
+                <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 z-20">
+                  {displayBanners.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      aria-label={`Go to slide ${i + 1}`}
+                      onClick={() => setCurrentSlide(i)}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? 'bg-white w-4' : 'bg-white/40 w-1.5'}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -432,67 +490,6 @@ export default function HomeHeader({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Sticky Search Bar wrapper — position adjusts when categories are also stuck */}
-      <div
-        className={`relative sticky z-[60] px-3 pb-0 -mt-[256px] mb-[210px] pointer-events-none ${
-          isCategoryStuck ? 'top-0 pt-2' : 'top-2'
-        }`}
-      >
-        <div 
-          className={`relative z-[60] rounded-[1.5rem] flex items-center px-4 py-3.5 border cursor-pointer active:scale-[0.98] group mx-1 pointer-events-auto ${
-            isCategoryStuck
-              ? "bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-white dark:border-gray-800 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
-              : "bg-white dark:bg-[#1a1a1a] border-gray-100 dark:border-gray-800 shadow-sm"
-          }`}
-          onClick={handleSearchFocus}
-          onTouchStart={handleSearchFocus}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              handleSearchFocus();
-            }
-          }}
-        >
-          <Search className="h-5 w-5 text-gray-400 mr-3 group-hover:text-[#FA0272] transition-colors duration-300 dark:text-gray-500" strokeWidth={2.5} />
-          <div className="flex-1 overflow-hidden relative h-5">
-            <input
-              type="text"
-              readOnly
-              aria-label="Search"
-              onFocus={handleSearchFocus}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={placeholderIndex}
-                initial={{ y: 15, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -15, opacity: 0 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
-                className="absolute inset-0 text-[14px] font-bold text-gray-500 dark:text-gray-400"
-              >
-                {placeholders?.[placeholderIndex] || 'Search "pizza"'}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-          <div 
-            className="bg-[#FA0272]/5 dark:bg-[#FA0272]/10 p-2 rounded-full border border-[#FA0272]/10 ml-2 group-hover:bg-[#FA0272]/10 transition-all flex items-center justify-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate('/user/search?voice=true');
-            }}
-            onTouchStart={(e) => {
-              e.stopPropagation();
-              navigate('/user/search?voice=true');
-            }}
-          >
-            <Mic className="h-4 w-4 text-[#FA0272]" strokeWidth={2.5} />
-          </div>
-        </div>
-      </div>
     </>
   );
 }
