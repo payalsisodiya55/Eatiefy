@@ -85,7 +85,7 @@ export default function BottomNavigation() {
             <Tag className={`h-5 w-5 transition-transform duration-300 ${isUnder250 ? "scale-110" : "text-gray-500 dark:text-gray-400"}`} strokeWidth={isUnder250 ? 2.5 : 2} style={isUnder250 ? { color: activeColor, fill: activeFill } : undefined} />
           </div>
           <span className={`text-[10px] sm:text-xs font-semibold tracking-wide transition-all ${isUnder250 ? "" : "text-gray-500 dark:text-gray-400 opacity-80"}`}>
-            Switch 99
+            Eatiefy 99
           </span>
         </Link>
 

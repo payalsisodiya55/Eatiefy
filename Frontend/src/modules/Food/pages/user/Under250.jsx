@@ -763,7 +763,7 @@ export default function Under250() {
       [lineItemId]: newQuantity,
     }))
 
-    const restaurant = item.restaurant || "Switch 99"
+    const restaurant = item.restaurant || "Eatiefy 99"
     const validRestaurantId = item.restaurantId || item.restaurant_id || ""
 
     // Prepare cart item with all required properties
@@ -910,7 +910,7 @@ export default function Under250() {
       if (navigator.share) {
         await navigator.share({
           title: item.name || "Dish",
-          text: `Check out ${item.name || "this dish"} from ${item.restaurant || "Switch 99"}`,
+          text: `Check out ${item.name || "this dish"} from ${item.restaurant || "Eatiefy 99"}`,
           url: shareUrl,
         })
         return
@@ -930,7 +930,7 @@ export default function Under250() {
     const shareUrl = restaurantSlug
       ? `${window.location.origin}/user/restaurants/${restaurantSlug}${itemId ? `?dish=${encodeURIComponent(itemId)}` : ""}`
       : window.location.href
-    const shareText = `Check out ${selectedItem.name || "this dish"} from ${selectedItem.restaurant || "Switch 99"}`
+    const shareText = `Check out ${selectedItem.name || "this dish"} from ${selectedItem.restaurant || "Eatiefy 99"}`
     const encodedUrl = encodeURIComponent(shareUrl)
     const encodedText = encodeURIComponent(`${shareText} ${shareUrl}`)
 
@@ -1571,7 +1571,7 @@ export default function Under250() {
 
                 {/* Description */}
                 <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 mb-4 md:mb-6 lg:mb-8 leading-relaxed">
-                  {selectedItem.description || `${selectedItem.name} from ${selectedItem.restaurant || 'Switch 99'}`}
+                  {selectedItem.description || `${selectedItem.name} from ${selectedItem.restaurant || 'Eatiefy 99'}`}
                 </p>
 
                 {/* Highly Reordered Progress Bar */}

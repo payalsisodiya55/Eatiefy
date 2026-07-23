@@ -22,7 +22,7 @@ export default function PromoRow({ handleVegModeChange, navigate, isVegMode, tog
     {
       id: 'under-250',
       title: "Under ₹99",
-      value: "Switch 99",
+      value: "Eatiefy 99",
       icon: pricePromoIcon,
     },
     {
