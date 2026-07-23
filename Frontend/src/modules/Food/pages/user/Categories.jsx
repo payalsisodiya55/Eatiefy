@@ -138,7 +138,7 @@ export default function Categories() {
                       <OptimizedImage
                         src={category.image}
                         alt={category.name}
-                        className="w-full h-full object-cover group-hover:scale-[1.08] transition-transform duration-500"
+                        className="w-full h-full object-contain group-hover:scale-[1.08] transition-transform duration-500"
                         sizes="(max-width: 640px) 50vw, 25vw"
                       />
                     </div>

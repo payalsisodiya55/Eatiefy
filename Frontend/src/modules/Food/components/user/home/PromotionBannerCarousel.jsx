@@ -76,7 +76,7 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
   if (loading) {
     return (
       <div className="px-4 py-2 max-w-7xl mx-auto w-full">
-        <div className="w-full h-32 sm:h-40 md:h-48 rounded-[24px] bg-gray-100 animate-pulse" />
+        <div className="w-full h-36 sm:h-40 md:h-48 rounded-[24px] bg-gray-100 animate-pulse" />
       </div>
     );
   }
@@ -85,7 +85,7 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
 
   return (
     <div className="px-4 py-4 relative group max-w-md sm:max-w-xl md:max-w-6xl lg:max-w-7xl mx-auto w-full">
-      <div className="relative overflow-hidden rounded-[24px] shadow-lg aspect-[21/9] sm:aspect-[24/9] md:aspect-[24/8] lg:aspect-[24/7] max-h-[140px] sm:max-h-[165px] md:max-h-[280px] lg:max-h-[360px]">
+      <div className="relative overflow-hidden rounded-[24px] shadow-lg aspect-[18/8] sm:aspect-[24/9] md:aspect-[24/8] lg:aspect-[24/7] max-h-[160px] sm:max-h-[165px] md:max-h-[280px] lg:max-h-[360px]">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={banners[currentIndex]?._id?.$oid || banners[currentIndex]?._id || currentIndex}

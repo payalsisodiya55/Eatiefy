@@ -8,6 +8,7 @@ import { authAPI } from "@food/api"
 import { motion } from "framer-motion"
 import loginBanner from "@food/assets/loginbanner.png"
 import logoImg from "@food/assets/switcheats-logo copy.png"
+import { getCachedSettings, loadBusinessSettings } from "@food/utils/businessSettings"
 const debugLog = (...args) => { }
 const debugWarn = (...args) => { }
 const debugError = (...args) => { }
@@ -17,6 +18,15 @@ export default function SignIn() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
+  const [logoUrl, setLogoUrl] = useState(() => {
+    const cached = getCachedSettings()
+    return cached?.logo?.url || logoImg
+  })
+  const [companyName, setCompanyName] = useState(() => {
+    const cached = getCachedSettings()
+    return cached?.companyName || "SWITCH EATS"
+  })
+
   const [formData, setFormData] = useState({
     phone: "",
     countryCode: "+91", // required; default +91 for India
@@ -25,6 +35,25 @@ export default function SignIn() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const submittingRef = useRef(false)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const settings = await loadBusinessSettings()
+        if (settings) {
+          if (settings.logo?.url) {
+            setLogoUrl(settings.logo.url)
+          }
+          if (settings.companyName) {
+            setCompanyName(settings.companyName)
+          }
+        }
+      } catch (err) {
+        debugError("Error loading business settings:", err)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   useEffect(() => {
     const stored = sessionStorage.getItem("userAuthData")
@@ -133,11 +162,42 @@ export default function SignIn() {
           className="relative z-10 flex flex-col items-center gap-4"
         >
           <div className="w-24 h-24 bg-white rounded-[2.2rem] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-4 border-white/10 overflow-hidden p-2">
-            <img src={logoImg} alt="Logo" className="w-full h-full object-contain" />
+            <img
+              src={logoUrl || logoImg}
+              alt={companyName || "Logo"}
+              className="w-full h-full object-contain"
+              crossOrigin="anonymous"
+              onError={(e) => {
+                if (e.target.src !== logoImg) {
+                  e.target.src = logoImg
+                }
+              }}
+            />
           </div>
           <div className="text-center">
             <h1 className="text-white font-black text-4xl tracking-tighter leading-none mb-1 italic">
-              SWITCH<span className="opacity-60">EATS</span>
+              {(() => {
+                const name = String(companyName || "").trim()
+                const upper = name.toUpperCase()
+                if (upper === "SWITCHEATS" || upper === "SWITCH EATS") {
+                  return (
+                    <>
+                      SWITCH<span className="opacity-60">EATS</span>
+                    </>
+                  )
+                }
+                if (name.includes(" ")) {
+                  const parts = name.split(" ")
+                  const first = parts[0].toUpperCase()
+                  const rest = parts.slice(1).join(" ").toUpperCase()
+                  return (
+                    <>
+                      {first}<span className="opacity-60"> {rest}</span>
+                    </>
+                  )
+                }
+                return upper
+              })()}
             </h1>
             <div className="h-0.5 w-12 bg-white/40 mx-auto rounded-full" />
           </div>
