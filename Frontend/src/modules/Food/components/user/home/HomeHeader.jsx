@@ -289,10 +289,10 @@ export default function HomeHeader({
 
         {/* Sticky Search Bar (Clean flow) */}
         <div
-          className={`sticky z-[60] px-4 pb-3 transition-all duration-300 md:hidden ${
+          className={`z-[60] px-4 pb-3 transition-all duration-300 md:hidden ${
             isCategoryStuck 
-              ? 'top-0 pt-3 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b dark:border-gray-800' 
-              : 'top-2 pt-0 bg-transparent'
+              ? 'fixed top-0 left-0 right-0 pt-3 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b dark:border-gray-800' 
+              : 'sticky top-2 pt-0 bg-transparent'
           }`}
         >
           <div 

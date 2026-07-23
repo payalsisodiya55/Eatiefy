@@ -2575,70 +2575,88 @@ export default function Cart() {
               <div className="bg-white dark:bg-[#1a1a1a] px-4 md:px-6 py-4 md:py-5 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-gray-800">
                 <div className="space-y-3 md:space-y-4">
                   {cart.map((item) => (
-                    <div key={item.id} className="flex items-start gap-3 md:gap-4">
-                      {/* Veg/Non-veg indicator */}
-                      <div
-                        className="w-4 h-4 md:w-5 md:h-5 border-2 flex items-center justify-center mt-1 flex-shrink-0"
-                        style={{ borderColor: item.foodType === 'Veg' || item.isVeg === true ? "#16a34a" : "#dc2626" }}
-                      >
-                        <div
-                          className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full"
-                          style={{ backgroundColor: item.foodType === 'Veg' || item.isVeg === true ? "#16a34a" : "#dc2626" }}
+                    <div key={item.id} className="flex items-center gap-3.5 md:gap-4 py-3.5 border-b border-slate-100 dark:border-gray-800 last:border-b-0 last:pb-0 first:pt-0">
+                      {/* Left: Food Image with Veg/Non-Veg Badge */}
+                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-gray-800 shrink-0 relative shadow-sm border border-slate-100 dark:border-gray-700">
+                        <img
+                          src={item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop"}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop";
+                          }}
                         />
+                        {/* Veg/Non-veg indicator absolute on top-left */}
+                        <div className="absolute top-1 left-1">
+                          <div
+                            className="w-3.5 h-3.5 bg-white border flex items-center justify-center rounded-sm shadow-sm"
+                            style={{ borderColor: item.foodType === 'Veg' || item.isVeg === true ? "#16a34a" : "#dc2626" }}
+                          >
+                            <div
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{ backgroundColor: item.foodType === 'Veg' || item.isVeg === true ? "#16a34a" : "#dc2626" }}
+                            />
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm md:text-base font-medium text-gray-800 dark:text-gray-200 leading-tight">{item.name}</p>
-                        {item.variantName ? (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{item.variantName}</p>
-                        ) : null}
-                      </div>
-
-                      <div className="flex items-center gap-3 md:gap-4">
-                        {/* Quantity controls */}
-                        <div className="flex items-center gap-1 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#141414] px-1 py-0.5">
-                          <button
-                            type="button"
-                            className="h-5 w-5 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:opacity-70"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </button>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-white min-w-[14px] text-center tabular-nums">
-                            {item.quantity}
-                          </span>
-                          <button
-                            type="button"
-                            className="h-5 w-5 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:opacity-70"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </button>
+                      {/* Right: Item Details (Name on top, Price & Quantity controls at bottom) */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-between h-20 py-0.5">
+                        <div>
+                          <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white leading-tight truncate capitalize">
+                            {item.name}
+                          </p>
+                          {item.variantName ? (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{item.variantName}</p>
+                          ) : null}
                         </div>
 
-                        <div className="min-w-[70px] text-right">
-                          {Number(item.otherPrice) > 0 &&
-                          Number(item.otherPrice) > Number(item.price || 0) ? (
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[11px] text-gray-400 line-through tabular-nums">
-                                {RUPEE_SYMBOL}
-                                {Math.round(
-                                  Number(item.otherPrice) * (item.quantity || 1),
-                                )}
-                              </span>
-                              <div className="flex items-center gap-1 justify-end">
-                                <span className="inline-flex items-center rounded-full border border-[#FA0272] bg-[#FA0272]/10 px-2 py-0.5 text-xs font-bold text-[#FA0272] tabular-nums">
+                        <div className="flex items-center justify-between mt-1">
+                          {/* Price */}
+                          <div className="text-left">
+                            {Number(item.otherPrice) > 0 &&
+                            Number(item.otherPrice) > Number(item.price || 0) ? (
+                              <div className="flex flex-col items-start leading-none">
+                                <span className="text-[10px] text-gray-400 line-through tabular-nums">
+                                  {RUPEE_SYMBOL}
+                                  {Math.round(
+                                    Number(item.otherPrice) * (item.quantity || 1),
+                                  )}
+                                </span>
+                                <span className="text-sm font-bold text-gray-905 dark:text-white tabular-nums mt-0.5">
                                   {RUPEE_SYMBOL}
                                   {((item.price || 0) * (item.quantity || 1)).toFixed(0)}
                                 </span>
                               </div>
-                            </div>
-                          ) : (
-                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200 tabular-nums">
-                              {RUPEE_SYMBOL}
-                              {((item.price || 0) * (item.quantity || 1)).toFixed(0)}
-                            </p>
-                          )}
+                            ) : (
+                              <p className="text-sm font-bold text-gray-905 dark:text-white tabular-nums leading-none">
+                                {RUPEE_SYMBOL}
+                                {((item.price || 0) * (item.quantity || 1)).toFixed(0)}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Quantity controls */}
+                          <div className="flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#141414] px-2.5 py-1 shadow-sm">
+                            <button
+                              type="button"
+                              className="h-4 w-4 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="text-xs font-semibold text-gray-905 dark:text-white min-w-[14px] text-center tabular-nums">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              className="h-4 w-4 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
