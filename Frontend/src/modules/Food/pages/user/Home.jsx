@@ -248,8 +248,11 @@ const RestaurantImageCarousel = React.memo(
     const [showShimmer, setShowShimmer] = useState(true);
     const [lastGoodSrc, setLastGoodSrc] = useState("");
     const touchStartX = useRef(0);
-    const touchEndX = useRef(0);
+    const touchStartY = useRef(0);
     const isSwiping = useRef(false);
+    const gestureDirection = useRef('none');
+    const containerRef = useRef(null);
+    const currentIdxRef = useRef(0);
 
     const safeIndex =
       images.length > 0
@@ -259,6 +262,11 @@ const RestaurantImageCarousel = React.memo(
     const displaySrc = primarySrc;
     const renderSrc = displaySrc || lastGoodSrc;
     const isImageLoaded = Boolean(loadedBySrc[renderSrc] || lastGoodSrc);
+
+    // Sync currentIdxRef with safeIndex
+    useEffect(() => {
+      currentIdxRef.current = safeIndex;
+    }, [safeIndex]);
 
     // Reset transient image state when restaurant or source list changes.
     useEffect(() => {
@@ -299,49 +307,107 @@ const RestaurantImageCarousel = React.memo(
       return () => clearTimeout(shimmerTimeout);
     }, [renderSrc]);
 
-    // Handle touch events for swipe
-    const handleTouchStart = (e) => {
-      touchStartX.current = e.touches[0].clientX;
-      isSwiping.current = false;
-    };
-
-    const handleTouchMove = (e) => {
-      const currentX = e.touches[0].clientX;
-      const diff = touchStartX.current - currentX;
-
-      // If swipe distance is significant, mark as swiping
-      if (Math.abs(diff) > 10) {
-        isSwiping.current = true;
-      }
-    };
-
-    const handleTouchEnd = (e) => {
-      if (!isSwiping.current) return;
-
-      touchEndX.current = e.changedTouches[0].clientX;
-      const diff = touchStartX.current - touchEndX.current;
-      const minSwipeDistance = 85; // Keep card swipe less sensitive on mobile
-
-      if (Math.abs(diff) > minSwipeDistance) {
-        if (diff > 0) {
-          // Swipe left - next image
-          setCurrentIndex((prev) => (prev + 1) % images.length);
-        } else {
-          // Swipe right - previous image
-          setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-        }
-      }
-
-      // Reset
-      isSwiping.current = false;
-      touchStartX.current = 0;
-      touchEndX.current = 0;
-    };
-
-    // Auto-sliding for recommended items
+    // PORTED FROM MINUTEKART: Premium Touch-drag Horizontal Carousel physics
     useEffect(() => {
-      const hasRecommended = Array.isArray(restaurant.recommendedItems) && restaurant.recommendedItems.length > 0;
-      if (!hasRecommended || images.length <= 1) return;
+      const container = containerRef.current;
+      if (!container || images.length <= 1) return;
+
+      const handleTouchStart = (e) => {
+        if (e.touches.length > 1) return;
+        const touch = e.touches[0];
+        touchStartX.current = touch.clientX;
+        touchStartY.current = touch.clientY;
+        isSwiping.current = true;
+        gestureDirection.current = 'none';
+        container.style.transition = 'none';
+      };
+
+      const handleTouchMove = (e) => {
+        if (!isSwiping.current) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - touchStartX.current;
+        const deltaY = touch.clientY - touchStartY.current;
+
+        if (gestureDirection.current === 'none') {
+          const threshold = 8;
+          const absX = Math.abs(deltaX);
+          const absY = Math.abs(deltaY);
+          if (absX >= threshold || absY >= threshold) {
+            if (absX > absY) {
+              gestureDirection.current = 'horizontal';
+            } else {
+              gestureDirection.current = 'vertical';
+              isSwiping.current = false;
+              return;
+            }
+          } else {
+            return;
+          }
+        }
+
+        if (gestureDirection.current === 'horizontal') {
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+          e.stopPropagation();
+
+          const baseTranslate = -currentIdxRef.current * 100;
+          const width = container.clientWidth || 100;
+          const percentDelta = (deltaX / width) * 100;
+
+          let finalTranslate = baseTranslate + percentDelta;
+          if (currentIdxRef.current === 0 && deltaX > 0) {
+            finalTranslate = percentDelta * 0.3;
+          } else if (currentIdxRef.current === images.length - 1 && deltaX < 0) {
+            finalTranslate = baseTranslate + percentDelta * 0.3;
+          }
+
+          container.style.transform = `translateX(${finalTranslate}%)`;
+        }
+      };
+
+      const handleTouchEnd = (e) => {
+        if (!isSwiping.current) return;
+        isSwiping.current = false;
+
+        if (gestureDirection.current !== 'horizontal') return;
+
+        const touch = e.changedTouches[0] || e.touches[0];
+        const endX = touch ? touch.clientX : touchStartX.current;
+        const deltaX = endX - touchStartX.current;
+
+        container.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
+        const width = container.clientWidth || 100;
+        const threshold = width * 0.25;
+
+        let newIdx = currentIdxRef.current;
+        if (deltaX < -threshold) {
+          newIdx = Math.min(currentIdxRef.current + 1, images.length - 1);
+        } else if (deltaX > threshold) {
+          newIdx = Math.max(currentIdxRef.current - 1, 0);
+        }
+
+        container.style.transform = `translateX(-${newIdx * 100}%)`;
+        
+        setTimeout(() => {
+          setCurrentIndex(newIdx);
+        }, 300);
+      };
+
+      container.addEventListener('touchstart', handleTouchStart, { passive: true });
+      container.addEventListener('touchmove', handleTouchMove, { passive: false });
+      container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+      return () => {
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchmove', handleTouchMove);
+        container.removeEventListener('touchend', handleTouchEnd);
+      };
+    }, [images.length, setCurrentIndex]);
+
+    // Auto-sliding for all multiple images
+    useEffect(() => {
+      if (images.length <= 1) return;
 
       const interval = setInterval(() => {
         if (typeof document !== "undefined" && document.hidden) return;
@@ -359,26 +425,25 @@ const RestaurantImageCarousel = React.memo(
         clearInterval(interval);
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
-    }, [restaurant.recommendedItems, images.length, setCurrentIndex]);
+    }, [images.length, setCurrentIndex]);
 
     const showMultipleImages = images.length > 1;
 
     return (
       <div
         className={`relative ${className} w-full overflow-hidden ${roundedClass} flex-shrink-0 group`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}>
+      >
         {showShimmer && !isImageUnavailable && Boolean(renderSrc) && (
           <div className="absolute inset-0 z-[1] overflow-hidden bg-gray-200">
             <div className="h-full w-full animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200" />
           </div>
         )}
 
-        <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-110 overflow-hidden">
+        <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105 overflow-hidden">
           <div
+            ref={containerRef}
             className="flex w-full h-full transition-transform duration-500 ease-in-out"
-            style={{ transform: `translateX(-${safeIndex * 100}%)` }}
+            style={{ transform: `translateX(-${safeIndex * 100}%)`, willChange: 'transform' }}
           >
             {images.map((src, idx) => (
               <img
