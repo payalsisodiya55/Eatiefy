@@ -303,6 +303,10 @@ router.patch('/business-settings', upload.fields([
 router.get('/power-scanning', businessSettingsController.getPowerScanningSettings);
 router.patch('/power-scanning', businessSettingsController.updatePowerScanningSettings);
 
+// ----- Image Storage Mode -----
+router.get('/business-settings/image-storage-mode', businessSettingsController.getImageStorageMode);
+router.patch('/business-settings/image-storage-mode', businessSettingsController.updateImageStorageMode);
+
 // ----- Restaurant Settings -----
 router.get('/restaurant-settings/order-acceptance', businessSettingsController.getOrderAcceptanceSettings);
 router.patch('/restaurant-settings/order-acceptance', businessSettingsController.updateOrderAcceptanceSettings);

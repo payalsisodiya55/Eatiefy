@@ -1219,6 +1219,17 @@ export const adminAPI = {
       contextModule: "admin",
     });
   },
+  /** Image Storage Mode */
+  getImageStorageMode: () =>
+    apiClient.get("/food/admin/business-settings/image-storage-mode", {
+      contextModule: "admin",
+    }),
+  updateImageStorageMode: (mode) =>
+    apiClient.patch(
+      "/food/admin/business-settings/image-storage-mode",
+      { mode },
+      { contextModule: "admin" }
+    ),
 };
 
 /** Restaurant API - OTP login via new backend; no email/password. */

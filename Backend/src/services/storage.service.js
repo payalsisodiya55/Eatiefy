@@ -3,8 +3,69 @@ import path from 'path';
 import crypto from 'crypto';
 import axios from 'axios';
 import sharp from 'sharp';
+import { v2 as cloudinary } from 'cloudinary';
 import { config } from '../config/env.js';
 import { ValidationError } from '../core/auth/errors.js';
+import { FoodBusinessSettings } from '../modules/food/admin/models/businessSettings.model.js';
+
+// ─── Cloudinary SDK Configuration ────────────────────────────────────────────
+if (config.cloudinaryCloudName && config.cloudinaryApiKey && config.cloudinaryApiSecret) {
+    cloudinary.config({
+        cloud_name: config.cloudinaryCloudName,
+        api_key: config.cloudinaryApiKey,
+        api_secret: config.cloudinaryApiSecret,
+    });
+}
+
+let cachedMode = null;
+let lastFetchTime = 0;
+
+export const getImageStorageMode = async () => {
+    const now = Date.now();
+    if (cachedMode && (now - lastFetchTime < 5000)) {
+        return cachedMode;
+    }
+    try {
+        const settings = await FoodBusinessSettings.findOne().select('imageStorageMode').lean();
+        cachedMode = settings?.imageStorageMode || 'server';
+        lastFetchTime = now;
+        return cachedMode;
+    } catch {
+        return cachedMode || 'server';
+    }
+};
+
+export const invalidateStorageModeCache = () => {
+    cachedMode = null;
+    lastFetchTime = 0;
+};
+
+const uploadToCloudinary = (buffer, folder) => {
+    if (!config.cloudinaryCloudName || !config.cloudinaryApiKey || !config.cloudinaryApiSecret) {
+        throw new ValidationError('Cloudinary credentials are not configured in environment.');
+    }
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder,
+                resource_type: 'image',
+            },
+            (error, result) => {
+                if (error) return reject(new ValidationError(`Cloudinary Upload Error: ${error.message}`));
+                resolve({
+                    url: result.secure_url,
+                    secure_url: result.secure_url,
+                    public_id: result.public_id,
+                    path: result.public_id,
+                    filename: result.public_id,
+                    mimeType: result.format ? `image/${result.format}` : 'image/jpeg',
+                    size: result.bytes || buffer.length
+                });
+            }
+        );
+        stream.end(buffer);
+    });
+};
 
 const ALLOWED_MIME_TYPES = new Set([
     'image/jpeg',
@@ -188,6 +249,14 @@ export const saveImageFile = async (file, folder) => {
     }
 
     const safeFolder = sanitizeUploadFolder(folder);
+
+    // Check active image storage mode (Cloudinary vs Server)
+    const mode = await getImageStorageMode();
+    if (mode === 'cloudinary') {
+        return uploadToCloudinary(file.buffer, safeFolder);
+    }
+
+    // Local server storage
     const optimized = await optimizeImageForStorage(file.buffer, mimeType);
     const filename = buildFilename(optimized.extension);
     const relativePath = path.posix.join(safeFolder, filename);
@@ -198,6 +267,8 @@ export const saveImageFile = async (file, folder) => {
 
     return {
         url: buildPublicUrl(relativePath),
+        secure_url: buildPublicUrl(relativePath),
+        public_id: relativePath,
         path: relativePath,
         filename,
         mimeType: optimized.mimeType,

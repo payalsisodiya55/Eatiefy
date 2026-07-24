@@ -50,7 +50,12 @@ const businessSettingsSchema = new mongoose.Schema(
                 fontFamily: { type: String, default: 'Poppins' }
             }
         },
-        orderAcceptanceTimeMinutes: { type: Number, default: 4, min: 1, max: 20 }
+        orderAcceptanceTimeMinutes: { type: Number, default: 4, min: 1, max: 20 },
+        imageStorageMode: {
+            type: String,
+            enum: ['server', 'cloudinary'],
+            default: 'server'
+        }
     },
     { timestamps: true }
 );

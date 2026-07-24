@@ -23,6 +23,8 @@ const hasSuspiciousEmailTld = (emailValue) => {
 export default function BusinessSetup() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [imageStorageMode, setImageStorageMode] = useState("server");
+  const [imageModeSaving, setImageModeSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
   const [faviconPreview, setFaviconPreview] = useState(null);
   const [restaurantLogoPreview, setRestaurantLogoPreview] = useState(null);
@@ -56,7 +58,32 @@ export default function BusinessSetup() {
   // Fetch business settings on mount
   useEffect(() => {
     fetchBusinessSettings();
+    fetchImageStorageMode();
   }, []);
+
+  const fetchImageStorageMode = async () => {
+    try {
+      const res = await adminAPI.getImageStorageMode();
+      const mode = res?.data?.data?.imageStorageMode || res?.data?.imageStorageMode || "server";
+      setImageStorageMode(mode);
+    } catch {
+      // silently fall back to 'server'
+    }
+  };
+
+  const handleImageStorageModeToggle = async (mode) => {
+    if (mode === imageStorageMode || imageModeSaving) return;
+    try {
+      setImageModeSaving(true);
+      await adminAPI.updateImageStorageMode(mode);
+      setImageStorageMode(mode);
+      toast.success(`Image storage switched to ${mode === "cloudinary" ? "Cloudinary CDN" : "Server Storage"}`);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update image storage mode");
+    } finally {
+      setImageModeSaving(false);
+    }
+  };
 
   const fetchBusinessSettings = async () => {
     try {
@@ -777,6 +804,89 @@ export default function BusinessSetup() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Image Storage Configuration */}
+          <div className="px-4 py-4 border-t border-slate-100">
+            <h3 className="text-sm font-semibold text-slate-900 mb-1 flex items-center gap-2">
+              Image Storage Configuration
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Choose where uploaded images are stored. Only one mode can be active at a time.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Server Storage Option */}
+              <div
+                className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                  imageStorageMode === "server"
+                    ? "bg-blue-50 border-blue-300"
+                    : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">Server Storage</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Images saved locally on the VPS and served via nginx.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  id="toggle-server-storage"
+                  onClick={() => handleImageStorageModeToggle("server")}
+                  disabled={imageModeSaving}
+                  className={`relative inline-flex h-5 w-10 shrink-0 items-center rounded-full border-2 transition-colors focus:outline-none disabled:opacity-50 ${
+                    imageStorageMode === "server"
+                      ? "border-blue-600 bg-blue-600"
+                      : "border-slate-300 bg-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                      imageStorageMode === "server" ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Cloudinary CDN Option */}
+              <div
+                className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                  imageStorageMode === "cloudinary"
+                    ? "bg-purple-50 border-purple-300"
+                    : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">Cloudinary CDN</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Images uploaded to Cloudinary and served from a global CDN.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  id="toggle-cloudinary-storage"
+                  onClick={() => handleImageStorageModeToggle("cloudinary")}
+                  disabled={imageModeSaving}
+                  className={`relative inline-flex h-5 w-10 shrink-0 items-center rounded-full border-2 transition-colors focus:outline-none disabled:opacity-50 ${
+                    imageStorageMode === "cloudinary"
+                      ? "border-purple-600 bg-purple-600"
+                      : "border-slate-300 bg-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                      imageStorageMode === "cloudinary" ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {imageModeSaving && (
+                <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+                </p>
+              )}
             </div>
           </div>
 

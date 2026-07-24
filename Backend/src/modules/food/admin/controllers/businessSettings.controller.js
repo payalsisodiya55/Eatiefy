@@ -1,6 +1,7 @@
 import { FoodBusinessSettings } from '../models/businessSettings.model.js';
 import { sendResponse } from '../../../../utils/response.js';
-import { uploadImageBufferDetailed } from '../../../../services/cloudinary.service.js';
+import { uploadImageRouted } from '../../../../services/cloudinary.service.js';
+import { invalidateStorageModeCache } from '../../../../services/storage.service.js';
 
 const POWER_SCANNING_DEFAULT = {
     user: { themeColor: '#618E17', fontFamily: 'Poppins' },
@@ -186,6 +187,54 @@ export async function updateOrderAcceptanceSettings(req, res, next) {
     }
 }
 
+// ─── Image Storage Mode ──────────────────────────────────────────────────────
+
+export async function getImageStorageMode(req, res, next) {
+    try {
+        let settings = await FoodBusinessSettings.findOne();
+        if (!settings) {
+            settings = await FoodBusinessSettings.create({
+                companyName: 'Eatiefy',
+                email: 'admin@eatiefy.com'
+            });
+        }
+        return sendResponse(res, 200, 'Image storage mode fetched', {
+            imageStorageMode: settings.imageStorageMode || 'server'
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function updateImageStorageMode(req, res, next) {
+    try {
+        const { mode } = req.body || {};
+        if (!mode || !['server', 'cloudinary'].includes(mode)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Mode must be either "server" or "cloudinary"'
+            });
+        }
+        let settings = await FoodBusinessSettings.findOne();
+        if (!settings) {
+            settings = new FoodBusinessSettings({
+                companyName: 'Eatiefy',
+                email: 'admin@eatiefy.com'
+            });
+        }
+        settings.imageStorageMode = mode;
+        await settings.save();
+        invalidateStorageModeCache();
+        return sendResponse(res, 200, `Image storage mode updated to "${mode}"`, {
+            imageStorageMode: settings.imageStorageMode
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// ─── Business Settings ────────────────────────────────────────────────────────
+
 export async function updateBusinessSettings(req, res, next) {
     try {
         const data = req.body.data ? JSON.parse(req.body.data) : {};
@@ -229,45 +278,46 @@ export async function updateBusinessSettings(req, res, next) {
         if (pincode !== undefined) settings.pincode = pincode;
         if (region) settings.region = region;
 
-        // Handle file uploads
+        // Handle file uploads — route to Cloudinary or server based on saved mode
+        const uploadMode = settings.imageStorageMode || 'server';
         if (req.files) {
             if (req.files.logo) {
-                const logoResult = await uploadImageBufferDetailed(req.files.logo[0].buffer, 'business/logos');
+                const logoResult = await uploadImageRouted(req.files.logo[0].buffer, 'business/logos', uploadMode);
                 settings.logo = {
                     url: logoResult.secure_url,
                     publicId: logoResult.public_id
                 };
             }
             if (req.files.favicon) {
-                const faviconResult = await uploadImageBufferDetailed(req.files.favicon[0].buffer, 'business/favicons');
+                const faviconResult = await uploadImageRouted(req.files.favicon[0].buffer, 'business/favicons', uploadMode);
                 settings.favicon = {
                     url: faviconResult.secure_url,
                     publicId: faviconResult.public_id
                 };
             }
             if (req.files.restaurantLogo) {
-                const restaurantLogoResult = await uploadImageBufferDetailed(req.files.restaurantLogo[0].buffer, 'business/restaurant/logos');
+                const restaurantLogoResult = await uploadImageRouted(req.files.restaurantLogo[0].buffer, 'business/restaurant/logos', uploadMode);
                 settings.restaurantLogo = {
                     url: restaurantLogoResult.secure_url,
                     publicId: restaurantLogoResult.public_id
                 };
             }
             if (req.files.restaurantFavicon) {
-                const restaurantFaviconResult = await uploadImageBufferDetailed(req.files.restaurantFavicon[0].buffer, 'business/restaurant/favicons');
+                const restaurantFaviconResult = await uploadImageRouted(req.files.restaurantFavicon[0].buffer, 'business/restaurant/favicons', uploadMode);
                 settings.restaurantFavicon = {
                     url: restaurantFaviconResult.secure_url,
                     publicId: restaurantFaviconResult.public_id
                 };
             }
             if (req.files.deliveryLogo) {
-                const deliveryLogoResult = await uploadImageBufferDetailed(req.files.deliveryLogo[0].buffer, 'business/delivery/logos');
+                const deliveryLogoResult = await uploadImageRouted(req.files.deliveryLogo[0].buffer, 'business/delivery/logos', uploadMode);
                 settings.deliveryLogo = {
                     url: deliveryLogoResult.secure_url,
                     publicId: deliveryLogoResult.public_id
                 };
             }
             if (req.files.deliveryFavicon) {
-                const deliveryFaviconResult = await uploadImageBufferDetailed(req.files.deliveryFavicon[0].buffer, 'business/delivery/favicons');
+                const deliveryFaviconResult = await uploadImageRouted(req.files.deliveryFavicon[0].buffer, 'business/delivery/favicons', uploadMode);
                 settings.deliveryFavicon = {
                     url: deliveryFaviconResult.secure_url,
                     publicId: deliveryFaviconResult.public_id
