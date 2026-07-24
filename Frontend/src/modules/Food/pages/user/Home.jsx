@@ -310,30 +310,27 @@ const RestaurantImageCarousel = React.memo(
       return () => clearTimeout(shimmerTimeout);
     }, [renderSrc]);
 
-    // PORTED FROM MINUTEKART: Premium Touch-drag Horizontal Carousel physics
+    // Enhanced Touch & Mouse drag Horizontal Carousel physics for nested card image slider
     useEffect(() => {
       const container = containerRef.current;
       if (!container || images.length <= 1) return;
 
-      const handleTouchStart = (e) => {
-        if (e.touches.length > 1) return;
-        const touch = e.touches[0];
-        touchStartX.current = touch.clientX;
-        touchStartY.current = touch.clientY;
+      const handleStart = (clientX, clientY) => {
+        touchStartX.current = clientX;
+        touchStartY.current = clientY;
         isSwiping.current = true;
         hasDragged.current = false;
         gestureDirection.current = 'none';
         container.style.transition = 'none';
       };
 
-      const handleTouchMove = (e) => {
+      const handleMove = (clientX, clientY, e) => {
         if (!isSwiping.current) return;
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - touchStartX.current;
-        const deltaY = touch.clientY - touchStartY.current;
+        const deltaX = clientX - touchStartX.current;
+        const deltaY = clientY - touchStartY.current;
 
         if (gestureDirection.current === 'none') {
-          const threshold = 8;
+          const threshold = 4;
           const absX = Math.abs(deltaX);
           const absY = Math.abs(deltaY);
           if (absX >= threshold || absY >= threshold) {
@@ -351,10 +348,10 @@ const RestaurantImageCarousel = React.memo(
 
         if (gestureDirection.current === 'horizontal') {
           hasDragged.current = true;
-          if (e.cancelable) {
-            e.preventDefault();
+          if (e) {
+            e.stopPropagation(); // Stops horizontal scroll from reaching outer cards container
+            if (e.cancelable) e.preventDefault();
           }
-          e.stopPropagation();
 
           const baseTranslate = -currentIdxRef.current * 100;
           const width = container.clientWidth || 100;
@@ -371,19 +368,18 @@ const RestaurantImageCarousel = React.memo(
         }
       };
 
-      const handleTouchEnd = (e) => {
+      const handleEnd = (clientX) => {
         if (!isSwiping.current) return;
         isSwiping.current = false;
 
         if (gestureDirection.current !== 'horizontal') return;
 
-        const touch = e.changedTouches[0] || e.touches[0];
-        const endX = touch ? touch.clientX : touchStartX.current;
+        const endX = clientX !== undefined ? clientX : touchStartX.current;
         const deltaX = endX - touchStartX.current;
 
         container.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
         const width = container.clientWidth || 100;
-        const threshold = width * 0.25;
+        const threshold = width * 0.2;
 
         let newIdx = currentIdxRef.current;
         if (deltaX < -threshold) {
@@ -399,14 +395,59 @@ const RestaurantImageCarousel = React.memo(
         }, 300);
       };
 
-      container.addEventListener('touchstart', handleTouchStart, { passive: true });
-      container.addEventListener('touchmove', handleTouchMove, { passive: false });
-      container.addEventListener('touchend', handleTouchEnd, { passive: true });
+      // Native Touch Event Listeners
+      const onTouchStart = (e) => {
+        if (e.touches.length > 1) return;
+        const touch = e.touches[0];
+        handleStart(touch.clientX, touch.clientY);
+      };
+
+      const onTouchMove = (e) => {
+        if (!isSwiping.current) return;
+        const touch = e.touches[0];
+        handleMove(touch.clientX, touch.clientY, e);
+      };
+
+      const onTouchEnd = (e) => {
+        const touch = e.changedTouches[0] || e.touches[0];
+        handleEnd(touch ? touch.clientX : touchStartX.current);
+      };
+
+      // Native Mouse Event Listeners for desktop touch/drag compatibility
+      const onMouseDown = (e) => {
+        handleStart(e.clientX, e.clientY);
+      };
+
+      const onMouseMove = (e) => {
+        handleMove(e.clientX, e.clientY, e);
+      };
+
+      const onMouseUp = (e) => {
+        handleEnd(e.clientX);
+      };
+
+      const onMouseLeave = (e) => {
+        handleEnd(e.clientX);
+      };
+
+      container.addEventListener('touchstart', onTouchStart, { passive: true });
+      container.addEventListener('touchmove', onTouchMove, { passive: false });
+      container.addEventListener('touchend', onTouchEnd, { passive: true });
+
+      container.addEventListener('mousedown', onMouseDown);
+      container.addEventListener('mousemove', onMouseMove);
+      container.addEventListener('mouseup', onMouseUp);
+      container.addEventListener('mouseleave', onMouseLeave);
 
       return () => {
-        container.removeEventListener('touchstart', handleTouchStart);
-        container.removeEventListener('touchmove', handleTouchMove);
-        container.removeEventListener('touchend', handleTouchEnd);
+        container.removeEventListener('touchstart', onTouchStart);
+        container.removeEventListener('touchmove', onTouchMove);
+        container.removeEventListener('touchend', onTouchEnd);
+
+        container.removeEventListener('mousedown', onMouseDown);
+        container.removeEventListener('mousemove', onMouseMove);
+        container.removeEventListener('mouseup', onMouseUp);
+        container.removeEventListener('mouseleave', onMouseLeave);
       };
     }, [images.length, setCurrentIndex]);
 
@@ -614,11 +655,12 @@ const RestaurantCard = React.memo(({
               : ""
           }`}>
           {/* Image Section with Carousel - Deep links to dish */}
-          <Link
-            to={targetUrl}
-            className="relative block"
-            onClick={() => {
+          <div
+            className="relative block cursor-pointer"
+            onClick={(e) => {
+              if (e.defaultPrevented) return;
               onNavigateAway?.();
+              navigate(targetUrl);
             }}
           >
             <RestaurantImageCarousel
@@ -648,7 +690,7 @@ const RestaurantCard = React.memo(({
                 </div>
               </div>
             )}
-          </Link>
+          </div>
 
           {/* Bookmark Icon - Top Right (Moved outside Image Link to ensure click-through works) */}
           <div className="absolute top-4 right-4 z-20 transform transition-transform duration-300 group-hover:scale-110">
@@ -3278,10 +3320,13 @@ export default function Home() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.35, delay: index * 0.05 }}>
-                      <Link
-                        to={`/food/user/restaurants/${restaurantSlug}`}
-                        onClick={captureScrollBeforeRestaurantNav}
-                        className="block rounded-[20px] overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1a1a] shadow-sm hover:shadow-md transition-shadow">
+                      <div
+                        onClick={(e) => {
+                          if (e.defaultPrevented) return;
+                          captureScrollBeforeRestaurantNav(e);
+                          navigate(`/food/user/restaurants/${restaurantSlug}`);
+                        }}
+                        className="block rounded-[20px] overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1a1a] shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                         <div className="relative h-32 sm:h-36 md:h-40 bg-gray-50">
                           <RestaurantImageCarousel
                             restaurant={restaurant}
@@ -3308,7 +3353,7 @@ export default function Home() {
                             </div>
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     </motion.div>
                   );
                 })}
