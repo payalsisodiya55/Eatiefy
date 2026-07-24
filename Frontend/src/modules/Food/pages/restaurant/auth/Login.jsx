@@ -11,7 +11,7 @@ import RestaurantPartnerHero from "@food/components/restaurant/auth/RestaurantPa
 import quickSpicyLogo from "@food/assets/switcheats-logo.png"
 
 const DEFAULT_COUNTRY_CODE = "+91"
-const THEME = "#FA0272"
+const THEME = "#E2AD4B"
 
 export default function RestaurantLogin() {
   const companyName = useCompanyName()
@@ -187,7 +187,7 @@ export default function RestaurantLogin() {
                   <Label htmlFor="restaurant-phone" className="text-sm font-medium text-gray-700">
                     Mobile number
                   </Label>
-                  <div className="flex overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all focus-within:ring-2 focus-within:ring-[#FA0272]/30">
+                  <div className="flex overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all focus-within:ring-2 focus-within:ring-[#E2AD4B]/30">
                     <div className="flex items-center border-r border-gray-200 bg-gray-50 px-4 text-sm font-semibold text-gray-700">
                       +91
                     </div>
@@ -231,15 +231,15 @@ export default function RestaurantLogin() {
                 Secure partner login &middot; {companyName}
               </p>
               <p className="text-[11px] text-gray-400">
-                <Link to="/food/restaurant/terms" className="transition-colors hover:text-[#FA0272]">
+                <Link to="/food/restaurant/terms" className="transition-colors hover:text-[#E2AD4B]">
                   Terms
                 </Link>
                 {" · "}
-                <Link to="/food/restaurant/privacy" className="transition-colors hover:text-[#FA0272]">
+                <Link to="/food/restaurant/privacy" className="transition-colors hover:text-[#E2AD4B]">
                   Privacy
                 </Link>
                 {" · "}
-                <Link to="/food/restaurant/help-content" className="transition-colors hover:text-[#FA0272]">
+                <Link to="/food/restaurant/help-content" className="transition-colors hover:text-[#E2AD4B]">
                   Support
                 </Link>
               </p>

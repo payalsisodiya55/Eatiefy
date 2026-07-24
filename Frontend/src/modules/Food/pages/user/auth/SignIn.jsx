@@ -224,7 +224,7 @@ export default function SignIn() {
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-4">
               <div className="relative group transition-all duration-300">
-                <div className="flex items-center gap-0 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus-within:border-[#FA0272]/50 focus-within:ring-4 focus-within:ring-[#FA0272]/5 transition-all overflow-hidden">
+                <div className="flex items-center gap-0 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus-within:border-[#E2AD4B]/50 focus-within:ring-4 focus-within:ring-[#E2AD4B]/5 transition-all overflow-hidden">
                   <div className="flex items-center px-4 h-16 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white font-black text-lg border-r border-zinc-200 dark:border-zinc-800">
                     <span>+91</span>
                   </div>
@@ -246,7 +246,7 @@ export default function SignIn() {
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-1.5 text-xs font-bold text-[#FA0272] pl-2"
+                  className="flex items-center gap-1.5 text-xs font-bold text-[#E2AD4B] pl-2"
                 >
                   <AlertCircle className="h-3.5 w-3.5" />
                   <span>{error}</span>
@@ -257,7 +257,7 @@ export default function SignIn() {
             <Button
               type="submit"
               disabled={isLoading || formData.phone.length !== 10}
-              className="w-full h-16 bg-[#FA0272] hover:bg-[#D40261] text-white font-black text-base uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-[0_12px_24px_rgba(250,2,114,0.3)] hover:shadow-[0_16px_32px_rgba(250,2,114,0.4)] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+              className="w-full h-16 bg-[#E2AD4B] hover:bg-[#D40261] text-white font-black text-base uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-[0_12px_24px_rgba(226,173,75,0.3)] hover:shadow-[0_16px_32px_rgba(226,173,75,0.4)] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function SignIn() {
               By joining, you agree to our policies
             </p>
             <p className="text-[10px] text-zinc-300 dark:text-zinc-700 font-bold mt-2 uppercase tracking-widest">
-              <Link to="/food/user/profile/terms" className="hover:text-[#FA0272]">Terms</Link> • <Link to="/food/user/profile/privacy" className="hover:text-[#FA0272]">Privacy</Link> • <Link to="/food/user/profile/help-content" className="hover:text-[#FA0272]">Support</Link>
+              <Link to="/food/user/profile/terms" className="hover:text-[#E2AD4B]">Terms</Link> • <Link to="/food/user/profile/privacy" className="hover:text-[#E2AD4B]">Privacy</Link> • <Link to="/food/user/profile/help-content" className="hover:text-[#E2AD4B]">Support</Link>
             </p>
           </footer>
         </div>

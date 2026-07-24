@@ -37,8 +37,8 @@ const FONT_STACKS = {
 };
 
 const LEGACY_BRAND_HEXES = [
-  "#FA0272",
-  "#D6005E",
+  "#E2AD4B",
+  "#C59132",
   "#00B761",
   "#2563EB",
   "#DC2626",
@@ -512,7 +512,7 @@ export const getModulePowerScanning = (moduleName = "user", settingsOverride = n
 const getThemeHoverColor = (themeColor, moduleName) => {
   const raw = String(themeColor || "").trim().toUpperCase();
   if (raw === "#618E17") return "#4f7512";
-  if (raw === "#FA0272") return "#D6005E";
+  if (raw === "#E2AD4B") return "#C59132";
   if (raw === "#2563EB") return "#1D4ED8";
   if (raw === "#00B761") return "#059669";
   return raw;

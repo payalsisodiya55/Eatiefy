@@ -221,7 +221,7 @@ export default function HomeHeader({
 
   return (
     <>
-      <div className="w-full bg-gradient-to-b from-amber-50/40 via-white to-white dark:from-[#1a1a1a] dark:to-[#0a0a0a] pb-3">
+      <div className="w-full bg-gradient-to-b from-amber-50/40 via-white to-white dark:from-[#1a1a1a] dark:via-[#0a0a0a] dark:to-[#0a0a0a] pb-3">
         
         {/* Static Location Row */}
         <div className="px-4 pt-5 pb-3 flex items-center justify-between gap-3 md:hidden">
@@ -229,8 +229,8 @@ export default function HomeHeader({
             className="flex items-center gap-1.5 cursor-pointer group min-w-0 flex-1"
             onClick={handleLocationClick}
           >
-            <div className="bg-[#FA0272]/10 p-1.5 rounded-full border border-[#FA0272]/20 hover:bg-[#FA0272]/20 transition-colors shadow-sm dark:bg-black/20 dark:border-white/10 dark:hover:bg-white/10 flex-shrink-0">
-              <MapPin className="h-4 w-4 text-[#FA0272] dark:text-white" />
+            <div className="bg-[#E2AD4B]/10 p-1.5 rounded-full border border-[#E2AD4B]/20 hover:bg-[#E2AD4B]/20 transition-colors shadow-sm dark:bg-black/20 dark:border-white/10 dark:hover:bg-white/10 flex-shrink-0">
+              <MapPin className="h-4 w-4 text-[#E2AD4B] dark:text-white" />
             </div>
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
@@ -312,7 +312,7 @@ export default function HomeHeader({
               }
             }}
           >
-            <Search className="h-5 w-5 text-gray-400 mr-3 group-hover:text-[#FA0272] transition-colors duration-300 dark:text-gray-500" strokeWidth={2.5} />
+            <Search className="h-5 w-5 text-gray-400 mr-3 group-hover:text-[#E2AD4B] transition-colors duration-300 dark:text-gray-500" strokeWidth={2.5} />
             <div className="flex-1 overflow-hidden relative h-5">
               <input
                 type="text"
@@ -335,7 +335,7 @@ export default function HomeHeader({
               </AnimatePresence>
             </div>
             <div 
-              className="bg-[#FA0272]/5 dark:bg-[#FA0272]/10 p-2 rounded-full border border-[#FA0272]/10 ml-2 group-hover:bg-[#FA0272]/10 transition-all flex items-center justify-center"
+              className="bg-[#E2AD4B]/5 dark:bg-[#E2AD4B]/10 p-2 rounded-full border border-[#E2AD4B]/10 ml-2 group-hover:bg-[#E2AD4B]/10 transition-all flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate('/user/search?voice=true');
@@ -345,7 +345,7 @@ export default function HomeHeader({
                 navigate('/user/search?voice=true');
               }}
             >
-              <Mic className="h-4 w-4 text-[#FA0272]" strokeWidth={2.5} />
+              <Mic className="h-4 w-4 text-[#E2AD4B]" strokeWidth={2.5} />
             </div>
           </div>
         </div>
