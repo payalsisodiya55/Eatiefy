@@ -15,6 +15,7 @@ import BottomNavigation from "./BottomNavigation"
 import DesktopNavbar from "./DesktopNavbar"
 import { useUserNotifications } from "../../hooks/useUserNotifications"
 import { shouldSkipScrollResetForHome } from "@food/utils/homeScrollRestore"
+import OnboardingSplash from "./OnboardingSplash"
 
 // Create SearchOverlay context with default value
 const SearchOverlayContext = createContext({
@@ -169,6 +170,14 @@ function LocationSelectorProvider({ children }) {
 
 export default function UserLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try {
+      return localStorage.getItem('eatiefy_onboarding_completed') !== 'true'
+    } catch (_) {
+      return false
+    }
+  })
 
   useEffect(() => {
     // Reset scroll to top whenever location changes (pathname, search, or hash).
@@ -223,6 +232,15 @@ export default function UserLayout() {
                   <Outlet />
                 </main>
                 {showBottomNav && <BottomNavigation />}
+                {showOnboarding && (
+                  <OnboardingSplash 
+                    onComplete={() => setShowOnboarding(false)} 
+                    onSignInClick={() => {
+                      setShowOnboarding(false);
+                      navigate("/food/user/auth/login");
+                    }}
+                  />
+                )}
               </LocationSelectorProvider>
             </SearchOverlayProvider>
           </OrdersProvider>
