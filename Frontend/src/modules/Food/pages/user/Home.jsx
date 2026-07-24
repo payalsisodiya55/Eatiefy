@@ -2923,7 +2923,7 @@ export default function Home() {
             {heroBannerImages.map((image, index) => (
               <div
                 key={`${index}-${image}`}
-                className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                className="absolute inset-0 transition-opacity duration-700 ease-in-out z-0"
                 style={{
                   opacity: currentBannerIndex === index ? 1 : 0,
                   zIndex: currentBannerIndex === index ? 2 : 1,

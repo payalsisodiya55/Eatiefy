@@ -6,7 +6,6 @@ import api, { publicConfigGetOnce } from "@food/api";
 const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
   const [banners, setBanners] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState('forward');
   const [loading, setLoading] = useState(true);
   const autoSlideIntervalRef = useRef(null);
 
@@ -40,7 +39,6 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
 
     autoSlideIntervalRef.current = setInterval(() => {
       if (typeof document !== "undefined" && document.hidden) return;
-      setDirection('forward');
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, 5000);
   }, [banners.length]);
@@ -61,14 +59,12 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
 
   const handleNext = (e) => {
     e?.stopPropagation();
-    setDirection('forward');
     setCurrentIndex((prev) => (prev + 1) % banners.length);
     startAutoSlide();
   };
 
   const handlePrev = (e) => {
     e?.stopPropagation();
-    setDirection('backward');
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
     startAutoSlide();
   };
@@ -86,45 +82,31 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
   return (
     <div className="px-4 py-4 relative group max-w-md sm:max-w-xl md:max-w-6xl lg:max-w-7xl mx-auto w-full">
       <div className="relative overflow-hidden rounded-[24px] shadow-lg aspect-[18/8] sm:aspect-[24/9] md:aspect-[24/8] lg:aspect-[24/7] max-h-[160px] sm:max-h-[165px] md:max-h-[280px] lg:max-h-[360px]">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={banners[currentIndex]?._id?.$oid || banners[currentIndex]?._id || currentIndex}
-            custom={direction}
-            variants={{
-              enter: (dir) => ({
-                x: dir === 'forward' ? "100%" : "-100%",
-                opacity: 1
-              }),
-              center: {
-                x: 0,
-                opacity: 1
-              },
-              exit: (dir) => ({
-                x: dir === 'forward' ? "-100%" : "100%",
-                opacity: 0
-              })
+        {banners.map((banner, index) => (
+          <div
+            key={banner._id?.$oid || banner._id || index}
+            className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+            style={{
+              opacity: currentIndex === index ? 1 : 0,
+              zIndex: currentIndex === index ? 2 : 1,
+              pointerEvents: currentIndex === index ? "auto" : "none",
             }}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="absolute inset-0 w-full h-full"
           >
             <a 
-              href={banners[currentIndex]?.ctaLink || "#"} 
+              href={banner.ctaLink || "#"} 
               className="block w-full h-full"
               onClick={(e) => {
-                if (!banners[currentIndex]?.ctaLink) e.preventDefault();
+                if (!banner.ctaLink) e.preventDefault();
               }}
             >
               <img 
-                src={banners[currentIndex]?.imageUrl} 
-                alt={banners[currentIndex]?.title || "Promotion"} 
+                src={banner.imageUrl} 
+                alt={banner.title || "Promotion"} 
                 className="w-full h-full object-cover"
               />
             </a>
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ))}
 
         {/* Navigation Arrows - Visible on Hover */}
         {banners.length > 1 && (

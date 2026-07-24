@@ -359,16 +359,19 @@ export default function HomeHeader({
             onTouchEnd={handleTouchEnd}
           >
             <div className="relative w-full aspect-[18/8] sm:aspect-[24/9] md:aspect-[24/8] lg:aspect-[24/7] max-h-[160px] sm:max-h-[165px] md:max-h-[280px] lg:max-h-[360px] overflow-hidden rounded-[24px] shadow-lg bg-gray-100 dark:bg-gray-800">
-              <div 
-                className="absolute inset-0 flex transition-transform duration-700 ease-in-out z-0"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {displayBanners.map((banner) => (
-                  <div key={banner.id} className="relative w-full h-full shrink-0">
-                    {banner.content}
-                  </div>
-                ))}
-              </div>
+              {displayBanners.map((banner, index) => (
+                <div
+                  key={banner.id}
+                  className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                  style={{
+                    opacity: currentSlide === index ? 1 : 0,
+                    zIndex: currentSlide === index ? 2 : 1,
+                    pointerEvents: currentSlide === index ? "auto" : "none",
+                  }}
+                >
+                  {banner.content}
+                </div>
+              ))}
               
               {/* Carousel Pager Dots */}
               {displayBanners.length > 1 && (
