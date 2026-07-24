@@ -213,9 +213,10 @@ const RestaurantImageCarousel = React.memo(
       const hasRecommended = Array.isArray(restaurant.recommendedItems) && restaurant.recommendedItems.length > 0;
       
       if (hasRecommended) {
-        return restaurant.recommendedItems
+        const list = restaurant.recommendedItems
           .filter(item => item && item.image)
           .map(item => withCacheBuster(item.image));
+        return Array.from(new Set(list));
       }
 
       const sourceImages =
@@ -228,7 +229,8 @@ const RestaurantImageCarousel = React.memo(
         .map((img) => img.trim())
         .filter(Boolean);
 
-      return validImages.map((img) => withCacheBuster(img));
+      const resolved = validImages.map((img) => withCacheBuster(img));
+      return Array.from(new Set(resolved));
     }, [restaurant.recommendedItems, restaurant.images, restaurant.image, withCacheBuster]);
     const [internalIndex, setInternalIndex] = useState(0);
     const currentIndex = externalIndex !== null ? externalIndex : internalIndex;
@@ -253,6 +255,7 @@ const RestaurantImageCarousel = React.memo(
     const gestureDirection = useRef('none');
     const containerRef = useRef(null);
     const currentIdxRef = useRef(0);
+    const hasDragged = useRef(false);
 
     const safeIndex =
       images.length > 0
@@ -318,6 +321,7 @@ const RestaurantImageCarousel = React.memo(
         touchStartX.current = touch.clientX;
         touchStartY.current = touch.clientY;
         isSwiping.current = true;
+        hasDragged.current = false;
         gestureDirection.current = 'none';
         container.style.transition = 'none';
       };
@@ -346,6 +350,7 @@ const RestaurantImageCarousel = React.memo(
         }
 
         if (gestureDirection.current === 'horizontal') {
+          hasDragged.current = true;
           if (e.cancelable) {
             e.preventDefault();
           }
@@ -411,6 +416,12 @@ const RestaurantImageCarousel = React.memo(
     return (
       <div
         className={`relative ${className} w-full overflow-hidden ${roundedClass} flex-shrink-0 group`}
+        onClick={(e) => {
+          if (hasDragged.current) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
       >
         {showShimmer && !isImageUnavailable && Boolean(renderSrc) && (
           <div className="absolute inset-0 z-[1] overflow-hidden bg-gray-200">
@@ -421,7 +432,7 @@ const RestaurantImageCarousel = React.memo(
         <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105 overflow-hidden">
           <div
             ref={containerRef}
-            className="flex w-full h-full transition-transform duration-500 ease-in-out"
+            className="flex w-full h-full transition-transform duration-500 ease-in-out touch-pan-y"
             style={{ transform: `translateX(-${safeIndex * 100}%)`, willChange: 'transform' }}
           >
             {images.map((src, idx) => (
