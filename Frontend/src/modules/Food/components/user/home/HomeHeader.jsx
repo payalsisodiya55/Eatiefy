@@ -298,8 +298,8 @@ export default function HomeHeader({
           <div 
             className={`relative z-[60] w-full rounded-[1.5rem] flex items-center px-4 border cursor-pointer active:scale-[0.98] group pointer-events-auto ${
               isCategoryStuck
-                ? "py-2.5 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-white dark:border-gray-800 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
-                : "py-3 bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-800 shadow-sm"
+                ? "py-1.5 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-white dark:border-gray-800 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)]"
+                : "py-2 bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-800 shadow-sm"
             }`}
             onClick={handleSearchFocus}
             onTouchStart={handleSearchFocus}
@@ -335,7 +335,7 @@ export default function HomeHeader({
               </AnimatePresence>
             </div>
             <div 
-              className="bg-[#E2AD4B]/5 dark:bg-[#E2AD4B]/10 p-2 rounded-full border border-[#E2AD4B]/10 ml-2 group-hover:bg-[#E2AD4B]/10 transition-all flex items-center justify-center"
+              className="bg-[#E2AD4B]/5 dark:bg-[#E2AD4B]/10 p-1.5 rounded-full border border-[#E2AD4B]/10 ml-2 group-hover:bg-[#E2AD4B]/10 transition-all flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate('/user/search?voice=true');
