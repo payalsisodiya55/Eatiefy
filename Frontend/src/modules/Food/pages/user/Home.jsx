@@ -405,27 +405,6 @@ const RestaurantImageCarousel = React.memo(
       };
     }, [images.length, setCurrentIndex]);
 
-    // Auto-sliding for all multiple images
-    useEffect(() => {
-      if (images.length <= 1) return;
-
-      const interval = setInterval(() => {
-        if (typeof document !== "undefined" && document.hidden) return;
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-      }, 3000);
-
-      const handleVisibilityChange = () => {
-        if (typeof document !== "undefined" && !document.hidden) {
-          setCurrentIndex((prev) => (prev + 1) % images.length);
-        }
-      };
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-
-      return () => {
-        clearInterval(interval);
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-      };
-    }, [images.length, setCurrentIndex]);
 
     const showMultipleImages = images.length > 1;
 

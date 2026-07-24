@@ -202,27 +202,6 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
     };
   }, [images.length]);
 
-  // Auto-sliding for all multiple images
-  useEffect(() => {
-    if (images.length <= 1) return;
-
-    const interval = setInterval(() => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
-
-    const handleVisibilityChange = () => {
-      if (typeof document !== "undefined" && !document.hidden) {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [images.length]);
 
   return (
     <div className="relative w-full h-[180px] sm:h-[190px] overflow-hidden bg-gray-100 dark:bg-gray-800 group">
