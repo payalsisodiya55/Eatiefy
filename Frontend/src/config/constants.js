@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  NAME: 'SwitchEats',
+  NAME: 'Eatiefy',
   VERSION: '1.0.0',
 };
 

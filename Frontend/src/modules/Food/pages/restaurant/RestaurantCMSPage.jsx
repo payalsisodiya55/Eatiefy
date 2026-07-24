@@ -178,7 +178,7 @@ export default function RestaurantCMSPage({ endpoint, title: defaultTitle, modul
 
         <p className="text-center mt-10 text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] leading-relaxed">
           Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} <br />
-          © {new Date().getFullYear()} SwitchEats. All Rights Reserved.
+          © {new Date().getFullYear()} Eatiefy. All Rights Reserved.
         </p>
       </div>
     </div>
