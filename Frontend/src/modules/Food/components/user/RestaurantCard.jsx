@@ -57,13 +57,15 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
   const [showShimmer, setShowShimmer] = useState(true);
   const [lastGoodSrc, setLastGoodSrc] = useState("");
   
+  const sliderRef = useRef(null);
+  const containerRef = useRef(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const isSwiping = useRef(false);
   const gestureDirection = useRef('none');
-  const containerRef = useRef(null);
   const currentIdxRef = useRef(0);
   const hasDragged = useRef(false);
+  const dragTimeoutRef = useRef(null);
 
   const safeIndex = images.length > 0 ? (currentIndex % images.length + images.length) % images.length : 0;
   const renderSrc = images[safeIndex] || lastGoodSrc;
@@ -108,8 +110,9 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
 
   // Enhanced Touch & Mouse drag Horizontal Carousel physics for nested card image slider
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || images.length <= 1) return;
+    const sliderNode = sliderRef.current;
+    const containerNode = containerRef.current;
+    if (!sliderNode || !containerNode || images.length <= 1) return;
 
     const handleStart = (clientX, clientY) => {
       touchStartX.current = clientX;
@@ -117,7 +120,7 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       isSwiping.current = true;
       hasDragged.current = false;
       gestureDirection.current = 'none';
-      container.style.transition = 'none';
+      containerNode.style.transition = 'none';
     };
 
     const handleMove = (clientX, clientY, e) => {
@@ -126,10 +129,9 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       const deltaY = clientY - touchStartY.current;
 
       if (gestureDirection.current === 'none') {
-        const threshold = 4;
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
-        if (absX >= threshold || absY >= threshold) {
+        if (absX >= 3 || absY >= 3) {
           if (absX > absY) {
             gestureDirection.current = 'horizontal';
           } else {
@@ -150,7 +152,7 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
         }
 
         const baseTranslate = -currentIdxRef.current * 100;
-        const width = container.clientWidth || 100;
+        const width = containerNode.clientWidth || sliderNode.clientWidth || 100;
         const percentDelta = (deltaX / width) * 100;
 
         let finalTranslate = baseTranslate + percentDelta;
@@ -160,7 +162,7 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
           finalTranslate = baseTranslate + percentDelta * 0.3;
         }
 
-        container.style.transform = `translateX(${finalTranslate}%)`;
+        containerNode.style.transform = `translateX(${finalTranslate}%)`;
       }
     };
 
@@ -173,9 +175,9 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       const endX = clientX !== undefined ? clientX : touchStartX.current;
       const deltaX = endX - touchStartX.current;
 
-      container.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
-      const width = container.clientWidth || 100;
-      const threshold = width * 0.2;
+      containerNode.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
+      const width = containerNode.clientWidth || sliderNode.clientWidth || 100;
+      const threshold = width * 0.15;
 
       let newIdx = currentIdxRef.current;
       if (deltaX < -threshold) {
@@ -184,14 +186,19 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
         newIdx = Math.max(currentIdxRef.current - 1, 0);
       }
 
-      container.style.transform = `translateX(-${newIdx * 100}%)`;
+      containerNode.style.transform = `translateX(-${newIdx * 100}%)`;
       
       setTimeout(() => {
         setCurrentIndex(newIdx);
       }, 300);
+
+      if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+      dragTimeoutRef.current = setTimeout(() => {
+        hasDragged.current = false;
+      }, 300);
     };
 
-    // Native Touch Event Listeners
+    // Native Touch Listeners
     const onTouchStart = (e) => {
       if (e.touches.length > 1) return;
       const touch = e.touches[0];
@@ -209,7 +216,7 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       handleEnd(touch ? touch.clientX : touchStartX.current);
     };
 
-    // Native Mouse Event Listeners for desktop touch/drag compatibility
+    // Mouse drag Listeners for desktop touch-device emulation & mouse drag
     const onMouseDown = (e) => {
       handleStart(e.clientX, e.clientY);
     };
@@ -226,30 +233,31 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       handleEnd(e.clientX);
     };
 
-    container.addEventListener('touchstart', onTouchStart, { passive: true });
-    container.addEventListener('touchmove', onTouchMove, { passive: false });
-    container.addEventListener('touchend', onTouchEnd, { passive: true });
+    sliderNode.addEventListener('touchstart', onTouchStart, { passive: true });
+    sliderNode.addEventListener('touchmove', onTouchMove, { passive: false });
+    sliderNode.addEventListener('touchend', onTouchEnd, { passive: true });
 
-    container.addEventListener('mousedown', onMouseDown);
-    container.addEventListener('mousemove', onMouseMove);
-    container.addEventListener('mouseup', onMouseUp);
-    container.addEventListener('mouseleave', onMouseLeave);
+    sliderNode.addEventListener('mousedown', onMouseDown);
+    sliderNode.addEventListener('mousemove', onMouseMove);
+    sliderNode.addEventListener('mouseup', onMouseUp);
+    sliderNode.addEventListener('mouseleave', onMouseLeave);
 
     return () => {
-      container.removeEventListener('touchstart', onTouchStart);
-      container.removeEventListener('touchmove', onTouchMove);
-      container.removeEventListener('touchend', onTouchEnd);
+      sliderNode.removeEventListener('touchstart', onTouchStart);
+      sliderNode.removeEventListener('touchmove', onTouchMove);
+      sliderNode.removeEventListener('touchend', onTouchEnd);
 
-      container.removeEventListener('mousedown', onMouseDown);
-      container.removeEventListener('mousemove', onMouseMove);
-      container.removeEventListener('mouseup', onMouseUp);
-      container.removeEventListener('mouseleave', onMouseLeave);
+      sliderNode.removeEventListener('mousedown', onMouseDown);
+      sliderNode.removeEventListener('mousemove', onMouseMove);
+      sliderNode.removeEventListener('mouseup', onMouseUp);
+      sliderNode.removeEventListener('mouseleave', onMouseLeave);
     };
   }, [images.length, setCurrentIndex]);
 
   return (
     <div 
-      className="relative w-full h-[180px] sm:h-[190px] overflow-hidden bg-gray-100 dark:bg-gray-800 group"
+      ref={sliderRef}
+      className="relative w-full h-[180px] sm:h-[190px] overflow-hidden bg-gray-100 dark:bg-gray-800 group select-none touch-pan-y"
       onClick={(e) => {
         if (hasDragged.current) {
           e.preventDefault();

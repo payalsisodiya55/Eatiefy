@@ -210,28 +210,35 @@ const RestaurantImageCarousel = React.memo(
     );
 
     const images = useMemo(() => {
+      const list = [];
       const hasRecommended = Array.isArray(restaurant.recommendedItems) && restaurant.recommendedItems.length > 0;
       
       if (hasRecommended) {
-        const list = restaurant.recommendedItems
-          .filter(item => item && item.image)
-          .map(item => withCacheBuster(item.image));
-        return Array.from(new Set(list));
+        restaurant.recommendedItems.forEach(item => {
+          if (item && item.image) list.push(item.image);
+        });
       }
 
-      const sourceImages =
-        Array.isArray(restaurant.images) && restaurant.images.length > 0
-          ? restaurant.images
-          : [restaurant.image];
+      if (Array.isArray(restaurant.images) && restaurant.images.length > 0) {
+        restaurant.images.forEach(img => {
+          if (typeof img === "string" && img.trim()) list.push(img.trim());
+        });
+      }
 
-      const validImages = sourceImages
-        .filter((img) => typeof img === "string")
-        .map((img) => img.trim())
-        .filter(Boolean);
+      if (restaurant.image && typeof restaurant.image === "string" && restaurant.image.trim()) {
+        list.push(restaurant.image.trim());
+      }
+      if (restaurant.coverImage && typeof restaurant.coverImage === "string" && restaurant.coverImage.trim()) {
+        list.push(restaurant.coverImage.trim());
+      }
 
-      const resolved = validImages.map((img) => withCacheBuster(img));
-      return Array.from(new Set(resolved));
-    }, [restaurant.recommendedItems, restaurant.images, restaurant.image, withCacheBuster]);
+      const validImages = list
+        .filter(Boolean)
+        .map((img) => withCacheBuster(img));
+
+      return Array.from(new Set(validImages));
+    }, [restaurant, withCacheBuster]);
+
     const [internalIndex, setInternalIndex] = useState(0);
     const currentIndex = externalIndex !== null ? externalIndex : internalIndex;
     
@@ -249,13 +256,16 @@ const RestaurantImageCarousel = React.memo(
     const [isImageUnavailable, setIsImageUnavailable] = useState(false);
     const [showShimmer, setShowShimmer] = useState(true);
     const [lastGoodSrc, setLastGoodSrc] = useState("");
+    
+    const sliderRef = useRef(null);
+    const containerRef = useRef(null);
     const touchStartX = useRef(0);
     const touchStartY = useRef(0);
     const isSwiping = useRef(false);
     const gestureDirection = useRef('none');
-    const containerRef = useRef(null);
     const currentIdxRef = useRef(0);
     const hasDragged = useRef(false);
+    const dragTimeoutRef = useRef(null);
 
     const safeIndex =
       images.length > 0
@@ -264,7 +274,6 @@ const RestaurantImageCarousel = React.memo(
     const primarySrc = images[safeIndex] || "";
     const displaySrc = primarySrc;
     const renderSrc = displaySrc || lastGoodSrc;
-    const isImageLoaded = Boolean(loadedBySrc[renderSrc] || lastGoodSrc);
 
     // Sync currentIdxRef with safeIndex
     useEffect(() => {
@@ -285,7 +294,6 @@ const RestaurantImageCarousel = React.memo(
       setLastGoodSrc("");
     }, [restaurant?.id, restaurant?.slug]);
 
-    // WebView can serve from cache without firing onLoad; handle already-complete images.
     useEffect(() => {
       if (!renderSrc) return;
       const imgEl = imageElementRef.current;
@@ -310,10 +318,11 @@ const RestaurantImageCarousel = React.memo(
       return () => clearTimeout(shimmerTimeout);
     }, [renderSrc]);
 
-    // Enhanced Touch & Mouse drag Horizontal Carousel physics for nested card image slider
+    // Touch & Mouse drag physics for nested card image slider
     useEffect(() => {
-      const container = containerRef.current;
-      if (!container || images.length <= 1) return;
+      const sliderNode = sliderRef.current;
+      const containerNode = containerRef.current;
+      if (!sliderNode || !containerNode || images.length <= 1) return;
 
       const handleStart = (clientX, clientY) => {
         touchStartX.current = clientX;
@@ -321,7 +330,7 @@ const RestaurantImageCarousel = React.memo(
         isSwiping.current = true;
         hasDragged.current = false;
         gestureDirection.current = 'none';
-        container.style.transition = 'none';
+        containerNode.style.transition = 'none';
       };
 
       const handleMove = (clientX, clientY, e) => {
@@ -330,10 +339,9 @@ const RestaurantImageCarousel = React.memo(
         const deltaY = clientY - touchStartY.current;
 
         if (gestureDirection.current === 'none') {
-          const threshold = 4;
           const absX = Math.abs(deltaX);
           const absY = Math.abs(deltaY);
-          if (absX >= threshold || absY >= threshold) {
+          if (absX >= 3 || absY >= 3) {
             if (absX > absY) {
               gestureDirection.current = 'horizontal';
             } else {
@@ -354,7 +362,7 @@ const RestaurantImageCarousel = React.memo(
           }
 
           const baseTranslate = -currentIdxRef.current * 100;
-          const width = container.clientWidth || 100;
+          const width = containerNode.clientWidth || sliderNode.clientWidth || 100;
           const percentDelta = (deltaX / width) * 100;
 
           let finalTranslate = baseTranslate + percentDelta;
@@ -364,7 +372,7 @@ const RestaurantImageCarousel = React.memo(
             finalTranslate = baseTranslate + percentDelta * 0.3;
           }
 
-          container.style.transform = `translateX(${finalTranslate}%)`;
+          containerNode.style.transform = `translateX(${finalTranslate}%)`;
         }
       };
 
@@ -377,9 +385,9 @@ const RestaurantImageCarousel = React.memo(
         const endX = clientX !== undefined ? clientX : touchStartX.current;
         const deltaX = endX - touchStartX.current;
 
-        container.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
-        const width = container.clientWidth || 100;
-        const threshold = width * 0.2;
+        containerNode.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
+        const width = containerNode.clientWidth || sliderNode.clientWidth || 100;
+        const threshold = width * 0.15;
 
         let newIdx = currentIdxRef.current;
         if (deltaX < -threshold) {
@@ -388,14 +396,19 @@ const RestaurantImageCarousel = React.memo(
           newIdx = Math.max(currentIdxRef.current - 1, 0);
         }
 
-        container.style.transform = `translateX(-${newIdx * 100}%)`;
+        containerNode.style.transform = `translateX(-${newIdx * 100}%)`;
         
         setTimeout(() => {
           setCurrentIndex(newIdx);
         }, 300);
+
+        if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+        dragTimeoutRef.current = setTimeout(() => {
+          hasDragged.current = false;
+        }, 300);
       };
 
-      // Native Touch Event Listeners
+      // Native Touch Listeners on the outer slider node
       const onTouchStart = (e) => {
         if (e.touches.length > 1) return;
         const touch = e.touches[0];
@@ -413,7 +426,7 @@ const RestaurantImageCarousel = React.memo(
         handleEnd(touch ? touch.clientX : touchStartX.current);
       };
 
-      // Native Mouse Event Listeners for desktop touch/drag compatibility
+      // Mouse drag Listeners for desktop touch-device emulation & mouse drag
       const onMouseDown = (e) => {
         handleStart(e.clientX, e.clientY);
       };
@@ -430,33 +443,33 @@ const RestaurantImageCarousel = React.memo(
         handleEnd(e.clientX);
       };
 
-      container.addEventListener('touchstart', onTouchStart, { passive: true });
-      container.addEventListener('touchmove', onTouchMove, { passive: false });
-      container.addEventListener('touchend', onTouchEnd, { passive: true });
+      sliderNode.addEventListener('touchstart', onTouchStart, { passive: true });
+      sliderNode.addEventListener('touchmove', onTouchMove, { passive: false });
+      sliderNode.addEventListener('touchend', onTouchEnd, { passive: true });
 
-      container.addEventListener('mousedown', onMouseDown);
-      container.addEventListener('mousemove', onMouseMove);
-      container.addEventListener('mouseup', onMouseUp);
-      container.addEventListener('mouseleave', onMouseLeave);
+      sliderNode.addEventListener('mousedown', onMouseDown);
+      sliderNode.addEventListener('mousemove', onMouseMove);
+      sliderNode.addEventListener('mouseup', onMouseUp);
+      sliderNode.addEventListener('mouseleave', onMouseLeave);
 
       return () => {
-        container.removeEventListener('touchstart', onTouchStart);
-        container.removeEventListener('touchmove', onTouchMove);
-        container.removeEventListener('touchend', onTouchEnd);
+        sliderNode.removeEventListener('touchstart', onTouchStart);
+        sliderNode.removeEventListener('touchmove', onTouchMove);
+        sliderNode.removeEventListener('touchend', onTouchEnd);
 
-        container.removeEventListener('mousedown', onMouseDown);
-        container.removeEventListener('mousemove', onMouseMove);
-        container.removeEventListener('mouseup', onMouseUp);
-        container.removeEventListener('mouseleave', onMouseLeave);
+        sliderNode.removeEventListener('mousedown', onMouseDown);
+        sliderNode.removeEventListener('mousemove', onMouseMove);
+        sliderNode.removeEventListener('mouseup', onMouseUp);
+        sliderNode.removeEventListener('mouseleave', onMouseLeave);
       };
     }, [images.length, setCurrentIndex]);
-
 
     const showMultipleImages = images.length > 1;
 
     return (
       <div
-        className={`relative ${className} w-full overflow-hidden ${roundedClass} flex-shrink-0 group`}
+        ref={sliderRef}
+        className={`relative ${className} w-full overflow-hidden ${roundedClass} flex-shrink-0 group select-none touch-pan-y`}
         onClick={(e) => {
           if (hasDragged.current) {
             e.preventDefault();
@@ -465,7 +478,7 @@ const RestaurantImageCarousel = React.memo(
         }}
       >
         {showShimmer && !isImageUnavailable && Boolean(renderSrc) && (
-          <div className="absolute inset-0 z-[1] overflow-hidden bg-gray-200">
+          <div className="absolute inset-0 z-[1] overflow-hidden bg-gray-200 pointer-events-none">
             <div className="h-full w-full animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200" />
           </div>
         )}
@@ -482,7 +495,8 @@ const RestaurantImageCarousel = React.memo(
                 ref={idx === safeIndex ? imageElementRef : null}
                 src={src}
                 alt={`${restaurant.name} - Image ${idx + 1}`}
-                className="w-full h-full flex-shrink-0 object-cover"
+                className="w-full h-full flex-shrink-0 object-cover pointer-events-none"
+                draggable={false}
                 loading={priority && idx === 0 ? "eager" : "lazy"}
                 fetchPriority={priority && idx === 0 ? "high" : "auto"}
                 decoding="async"
@@ -516,7 +530,7 @@ const RestaurantImageCarousel = React.memo(
         </div>
 
         {isImageUnavailable && (
-          <div className="absolute inset-0 z-[2] flex items-center justify-center bg-gray-100">
+          <div className="absolute inset-0 z-[2] flex items-center justify-center bg-gray-100 pointer-events-none">
             <span className="text-xs text-gray-500">Image unavailable</span>
           </div>
         )}
@@ -541,7 +555,7 @@ const RestaurantImageCarousel = React.memo(
                     e.stopPropagation();
                     setCurrentIndex(index);
                   }}
-                  className="flex h-3 w-3 items-center justify-center rounded-full focus:outline-none focus-visible:ring-1 focus-visible:ring-white/70"
+                  className="flex h-3 w-3 items-center justify-center rounded-full focus:outline-none focus-visible:ring-1 focus-visible:ring-white/70 cursor-pointer"
                   aria-label={`Go to image ${index + 1}`}>
                   <span
                     aria-hidden="true"
@@ -558,10 +572,10 @@ const RestaurantImageCarousel = React.memo(
         )}
 
         {/* Gradient Overlay on Hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
 
         {/* Shine Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-1000 group-hover:animate-shine" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-1000 group-hover:animate-shine pointer-events-none" />
       </div>
     );
   },
