@@ -5,7 +5,7 @@ import OptimizedImage from "@food/components/OptimizedImage";
 
 const WEBVIEW_SESSION_CACHE_BUSTER = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, backendOrigin = "" }) => {
+const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, backendOrigin = "", autoScroll = false }) => {
   const webviewSessionKeyRef = useRef(WEBVIEW_SESSION_CACHE_BUSTER);
   const imageElementRef = useRef(null);
 
@@ -62,6 +62,8 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const isSwiping = useRef(false);
+  const isPausedRef = useRef(false);
+  const pauseTimeoutRef = useRef(null);
   const gestureDirection = useRef('none');
   const currentIdxRef = useRef(0);
   const hasDragged = useRef(false);
@@ -74,6 +76,19 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
   useEffect(() => {
     currentIdxRef.current = safeIndex;
   }, [safeIndex]);
+
+  // Optional Auto-scroll effect (only runs if autoScroll prop is explicitly true)
+  useEffect(() => {
+    if (!autoScroll || images.length <= 1) return;
+
+    const intervalId = setInterval(() => {
+      if (!isSwiping.current && !isPausedRef.current) {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+      }
+    }, 3500);
+
+    return () => clearInterval(intervalId);
+  }, [autoScroll, images.length, setCurrentIndex]);
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -118,9 +133,12 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       touchStartX.current = clientX;
       touchStartY.current = clientY;
       isSwiping.current = true;
+      isPausedRef.current = true;
       hasDragged.current = false;
       gestureDirection.current = 'none';
       containerNode.style.transition = 'none';
+
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
     };
 
     const handleMove = (clientX, clientY, e) => {
@@ -169,6 +187,12 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
     const handleEnd = (clientX) => {
       if (!isSwiping.current) return;
       isSwiping.current = false;
+
+      // Resume auto-scroll 4 seconds after user interaction ends
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+      pauseTimeoutRef.current = setTimeout(() => {
+        isPausedRef.current = false;
+      }, 4000);
 
       if (gestureDirection.current !== 'horizontal') return;
 
@@ -229,8 +253,13 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       handleEnd(e.clientX);
     };
 
+    const onMouseEnter = () => {
+      isPausedRef.current = true;
+    };
+
     const onMouseLeave = (e) => {
       handleEnd(e.clientX);
+      isPausedRef.current = false;
     };
 
     sliderNode.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -240,6 +269,7 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
     sliderNode.addEventListener('mousedown', onMouseDown);
     sliderNode.addEventListener('mousemove', onMouseMove);
     sliderNode.addEventListener('mouseup', onMouseUp);
+    sliderNode.addEventListener('mouseenter', onMouseEnter);
     sliderNode.addEventListener('mouseleave', onMouseLeave);
 
     return () => {
@@ -250,6 +280,7 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
       sliderNode.removeEventListener('mousedown', onMouseDown);
       sliderNode.removeEventListener('mousemove', onMouseMove);
       sliderNode.removeEventListener('mouseup', onMouseUp);
+      sliderNode.removeEventListener('mouseenter', onMouseEnter);
       sliderNode.removeEventListener('mouseleave', onMouseLeave);
     };
   }, [images.length, setCurrentIndex]);
@@ -349,7 +380,7 @@ const RestaurantCard = ({
       className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 group relative cursor-pointer transform hover:-translate-y-1 active:scale-95"
     >
       <div className="relative">
-        <RestaurantImageCarousel restaurant={restaurant} backendOrigin={backendOrigin} />
+        <RestaurantImageCarousel restaurant={restaurant} backendOrigin={backendOrigin} autoScroll={true} />
         <button
           onClick={(e) => {
             e.stopPropagation();

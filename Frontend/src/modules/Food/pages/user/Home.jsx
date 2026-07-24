@@ -164,6 +164,7 @@ const RestaurantImageCarousel = React.memo(
     roundedClass = "rounded-t-md",
     externalIndex = null,
     onIndexChange = null,
+    autoScroll = false, // Disabled auto-scroll by default: cards slide ONLY on hand swipe
   }) => {
     const webviewSessionKeyRef = useRef(WEBVIEW_SESSION_CACHE_BUSTER);
     const imageElementRef = useRef(null);
@@ -262,6 +263,8 @@ const RestaurantImageCarousel = React.memo(
     const touchStartX = useRef(0);
     const touchStartY = useRef(0);
     const isSwiping = useRef(false);
+    const isPausedRef = useRef(false);
+    const pauseTimeoutRef = useRef(null);
     const gestureDirection = useRef('none');
     const currentIdxRef = useRef(0);
     const hasDragged = useRef(false);
@@ -279,6 +282,19 @@ const RestaurantImageCarousel = React.memo(
     useEffect(() => {
       currentIdxRef.current = safeIndex;
     }, [safeIndex]);
+
+    // Optional Auto-scroll effect (only runs if autoScroll prop is explicitly true)
+    useEffect(() => {
+      if (!autoScroll || images.length <= 1) return;
+
+      const intervalId = setInterval(() => {
+        if (!isSwiping.current && !isPausedRef.current) {
+          setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+        }
+      }, 3500);
+
+      return () => clearInterval(intervalId);
+    }, [autoScroll, images.length, setCurrentIndex]);
 
     // Reset transient image state when restaurant or source list changes.
     useEffect(() => {
@@ -328,9 +344,12 @@ const RestaurantImageCarousel = React.memo(
         touchStartX.current = clientX;
         touchStartY.current = clientY;
         isSwiping.current = true;
+        isPausedRef.current = true;
         hasDragged.current = false;
         gestureDirection.current = 'none';
         containerNode.style.transition = 'none';
+
+        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
       };
 
       const handleMove = (clientX, clientY, e) => {
@@ -379,6 +398,12 @@ const RestaurantImageCarousel = React.memo(
       const handleEnd = (clientX) => {
         if (!isSwiping.current) return;
         isSwiping.current = false;
+
+        // Resume auto-scroll 4 seconds after user interaction ends
+        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+        pauseTimeoutRef.current = setTimeout(() => {
+          isPausedRef.current = false;
+        }, 4000);
 
         if (gestureDirection.current !== 'horizontal') return;
 
@@ -439,8 +464,13 @@ const RestaurantImageCarousel = React.memo(
         handleEnd(e.clientX);
       };
 
+      const onMouseEnter = () => {
+        isPausedRef.current = true;
+      };
+
       const onMouseLeave = (e) => {
         handleEnd(e.clientX);
+        isPausedRef.current = false;
       };
 
       sliderNode.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -450,6 +480,7 @@ const RestaurantImageCarousel = React.memo(
       sliderNode.addEventListener('mousedown', onMouseDown);
       sliderNode.addEventListener('mousemove', onMouseMove);
       sliderNode.addEventListener('mouseup', onMouseUp);
+      sliderNode.addEventListener('mouseenter', onMouseEnter);
       sliderNode.addEventListener('mouseleave', onMouseLeave);
 
       return () => {
@@ -460,6 +491,7 @@ const RestaurantImageCarousel = React.memo(
         sliderNode.removeEventListener('mousedown', onMouseDown);
         sliderNode.removeEventListener('mousemove', onMouseMove);
         sliderNode.removeEventListener('mouseup', onMouseUp);
+        sliderNode.removeEventListener('mouseenter', onMouseEnter);
         sliderNode.removeEventListener('mouseleave', onMouseLeave);
       };
     }, [images.length, setCurrentIndex]);
@@ -683,6 +715,7 @@ const RestaurantCard = React.memo(({
               backendOrigin={BACKEND_ORIGIN}
               externalIndex={slideIndex}
               onIndexChange={setSlideIndex}
+              autoScroll={true}
             />
 
             {/* Recommended Dish Badge - Top Left */}
@@ -3347,6 +3380,7 @@ export default function Home() {
                             backendOrigin={BACKEND_ORIGIN}
                             className="h-32 sm:h-36 md:h-40"
                             roundedClass="rounded-t-[20px]"
+                            autoScroll={false}
                           />
                         </div>
                         <div className="p-3">
