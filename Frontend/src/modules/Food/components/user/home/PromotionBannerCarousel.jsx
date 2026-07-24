@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import api, { publicConfigGetOnce } from "@food/api";
+import { publicConfigGetOnce } from "@food/api";
 
 const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
   const [banners, setBanners] = useState([]);
@@ -13,17 +12,22 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
   const zoneId = propZoneId || localStorage.getItem('userZoneId');
 
   const fetchBanners = useCallback(async () => {
-    if (!zoneId) return;
+    if (!zoneId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const response = await publicConfigGetOnce("/food/hero-banners/home-promotion/public", {
         params: { zoneId },
       });
-      if (response.data?.success && response.data?.data?.banners) {
+      if (response.data?.success && Array.isArray(response.data?.data?.banners)) {
         setBanners(response.data.data.banners);
+      } else {
+        setBanners([]);
       }
     } catch (err) {
-      // Error handled silently
+      setBanners([]);
     } finally {
       setLoading(false);
     }
@@ -69,10 +73,11 @@ const PromotionBannerCarousel = ({ zoneId: propZoneId }) => {
     startAutoSlide();
   };
 
-  if (loading) {
+  // If loading and zoneId exists, show skeleton briefly. Otherwise if no banners, return null cleanly.
+  if (loading && zoneId) {
     return (
       <div className="px-4 py-2 max-w-7xl mx-auto w-full">
-        <div className="w-full h-36 sm:h-40 md:h-48 rounded-[24px] bg-gray-100 animate-pulse" />
+        <div className="w-full h-36 sm:h-40 md:h-48 rounded-[24px] bg-gray-100 dark:bg-gray-800 animate-pulse" />
       </div>
     );
   }
