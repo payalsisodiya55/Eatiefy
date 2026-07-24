@@ -1659,12 +1659,29 @@ export default function Cart() {
   }
 
   const handleBack = () => {
-    // Priority: slug > restaurantId (both work for the restaurant details route)
+    const canGoBackInHistory = typeof window !== "undefined" && 
+      (typeof window.history.state?.idx === "number" ? window.history.state.idx > 0 : window.history.length > 1)
+
+    if (canGoBackInHistory) {
+      navigate(-1)
+      return
+    }
+
+    // Fallback if no history back is possible
+    const idOrSlug = restaurantData?.slug || restaurantId
+    if (idOrSlug) {
+      navigate(`/food/user/restaurants/${idOrSlug}`, { replace: true })
+    } else {
+      navigate('/food/user', { replace: true })
+    }
+  }
+
+  const handleAddItems = () => {
     const idOrSlug = restaurantData?.slug || restaurantId
     if (idOrSlug) {
       navigate(`/food/user/restaurants/${idOrSlug}`)
     } else {
-      goBack()
+      navigate('/food/user')
     }
   }
 
@@ -2666,7 +2683,7 @@ export default function Cart() {
                 <div className="mt-4 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
                   <button
                     type="button"
-                    onClick={handleBack}
+                    onClick={handleAddItems}
                     className="flex items-center gap-1.5 shrink-0 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#141414] px-3 py-2 text-[12px] font-semibold text-gray-700 dark:text-gray-300"
                   >
                     <Plus className="h-3.5 w-3.5" />
