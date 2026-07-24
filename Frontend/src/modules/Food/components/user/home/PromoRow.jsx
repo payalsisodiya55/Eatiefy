@@ -1,37 +1,65 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { usePublicAppConfig } from "@food/context/PublicAppConfigContext";
+
 import discountPromoIcon from "@food/assets/category-icons/discount_promo.png";
 import gourmetPromoIcon from "@food/assets/explore more icons/gourmet.png";
 import pricePromoIcon from "@food/assets/category-icons/price_promo.png";
 import collectionPromoIcon from "@food/assets/explore more icons/collection.png";
 
 export default function PromoRow({ handleVegModeChange, navigate, isVegMode, toggleRef }) {
-  const promoCardsData = [
+  const { exploreIcons } = usePublicAppConfig() || {};
+
+  const defaultItems = [
     {
       id: 'offers',
       title: "Hot Deals",
       value: "Offers",
       icon: discountPromoIcon,
+      path: '/food/user/offers',
     },
     {
       id: 'gourmet',
       title: "Premium",
       value: "Gourmet",
       icon: gourmetPromoIcon,
+      path: '/food/user/gourmet',
     },
     {
       id: 'under-250',
       title: "Under ₹99",
       value: "Eatiefy 99",
       icon: pricePromoIcon,
+      path: '/food/user/under-250',
     },
     {
       id: 'collections',
       title: "Favorites",
       value: "Collections",
       icon: collectionPromoIcon,
+      path: '/food/user/profile/favorites',
     },
   ];
+
+  const promoCardsData = defaultItems.map((item) => {
+    const dbItem = (exploreIcons || []).find(
+      (db) => db.label?.toLowerCase() === item.value.toLowerCase()
+    );
+    if (dbItem) {
+      const dbUrl = dbItem.imageUrl || dbItem.iconUrl;
+      const rawLink = dbItem.link || dbItem.targetPath;
+      let finalLink = item.path;
+      if (rawLink) {
+        finalLink = rawLink.startsWith('/food') ? rawLink : `/food${rawLink}`;
+      }
+      return {
+        ...item,
+        icon: dbUrl || item.icon,
+        path: finalLink,
+      };
+    }
+    return item;
+  });
 
   return (
     <div className="grid grid-cols-4 gap-2 px-3 py-6 bg-transparent justify-items-center w-full max-w-[500px] mx-auto">
@@ -46,10 +74,7 @@ export default function PromoRow({ handleVegModeChange, navigate, isVegMode, tog
           whileTap={{ scale: 0.95 }}
           className="flex flex-col items-center gap-1.5 group cursor-pointer w-full"
           onClick={() => {
-            if (promo.id === 'gourmet') navigate('/food/user/gourmet');
-            else if (promo.id === 'offers') navigate('/food/user/offers');
-            else if (promo.id === 'under-250') navigate('/food/user/under-250');
-            else if (promo.id === 'collections') navigate('/food/user/profile/favorites');
+            navigate(promo.path);
           }}
         >
           {/* Floating Minimalist Image */}
