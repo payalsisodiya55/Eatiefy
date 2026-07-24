@@ -145,9 +145,8 @@ export default function OnboardingSplash({ onComplete, onSignInClick }) {
               </span>
             </h1>
 
-            {/* Description */}
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 text-left leading-relaxed max-w-[300px]">
-              Delicious meals made with real ingredients, delivered right to your door. Enjoy hot, fresh, and healthy dishes customized for your lifestyle.
+              Delicious meals made with real ingredients, delivered right to your door.
             </p>
 
             {/* Spacer — pushes button to bottom */}

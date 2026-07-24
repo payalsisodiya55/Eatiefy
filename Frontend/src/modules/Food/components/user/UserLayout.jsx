@@ -173,6 +173,9 @@ export default function UserLayout() {
   const navigate = useNavigate()
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {
+      if (typeof window !== "undefined" && window.innerWidth >= 768) {
+        return false;
+      }
       return localStorage.getItem('eatiefy_onboarding_completed') !== 'true'
     } catch (_) {
       return false
