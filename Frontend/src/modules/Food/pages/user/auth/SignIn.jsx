@@ -1,18 +1,14 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate, Link, useSearchParams } from "react-router-dom"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, ArrowRight, ShieldCheck } from "lucide-react"
 import AnimatedPage from "@food/components/user/AnimatedPage"
-import { Button } from "@food/components/ui/button"
 import { Input } from "@food/components/ui/input"
 import { authAPI } from "@food/api"
-import { motion } from "framer-motion"
-import loginBanner from "@food/assets/loginbanner.png"
+import { motion, AnimatePresence } from "framer-motion"
 import logoImg from "@food/assets/switcheats-logo copy.png"
 import { getCachedSettings, loadBusinessSettings } from "@food/utils/businessSettings"
-const debugLog = (...args) => { }
-const debugWarn = (...args) => { }
-const debugError = (...args) => { }
 
+const debugError = (...args) => { }
 
 export default function SignIn() {
   const navigate = useNavigate()
@@ -24,12 +20,12 @@ export default function SignIn() {
   })
   const [companyName, setCompanyName] = useState(() => {
     const cached = getCachedSettings()
-    return cached?.companyName || "SWITCH EATS"
+    return cached?.companyName || "Eatiefy"
   })
 
   const [formData, setFormData] = useState({
     phone: "",
-    countryCode: "+91", // required; default +91 for India
+    countryCode: "+91",
   })
 
   const [error, setError] = useState("")
@@ -41,12 +37,8 @@ export default function SignIn() {
       try {
         const settings = await loadBusinessSettings()
         if (settings) {
-          if (settings.logo?.url) {
-            setLogoUrl(settings.logo.url)
-          }
-          if (settings.companyName) {
-            setCompanyName(settings.companyName)
-          }
+          if (settings.logo?.url) setLogoUrl(settings.logo.url)
+          if (settings.companyName) setCompanyName(settings.companyName)
         }
       } catch (err) {
         debugError("Error loading business settings:", err)
@@ -76,7 +68,7 @@ export default function SignIn() {
   const validatePhone = (phone) => {
     if (!phone.trim()) return "Phone number is required"
     const cleanPhone = phone.replace(/\D/g, "")
-    if (!/^\d{10}$/.test(cleanPhone)) return "Phone number must be exactly 10 digits"
+    if (!/^\d{10}$/.test(cleanPhone)) return "Phone number must be 10 digits"
     return ""
   }
 
@@ -106,7 +98,7 @@ export default function SignIn() {
       const countryCode = formData.countryCode?.trim() || "+91"
       const phoneDigits = String(formData.phone ?? "").replace(/\D/g, "").slice(0, 10)
       if (phoneDigits.length !== 10) {
-        setError("Phone number must be exactly 10 digits")
+        setError("Phone number must be 10 digits")
         setIsLoading(false)
         submittingRef.current = false
         return
@@ -139,32 +131,33 @@ export default function SignIn() {
     }
   }
 
+  const isValidPhone = formData.phone.length === 10
+
   return (
-    <AnimatedPage className="min-h-[100dvh] bg-white dark:bg-[#0A0A0B] flex flex-col font-sans overflow-hidden">
-      {/* Top Branding Section - 40% height */}
+    <AnimatedPage className="min-h-[100dvh] bg-white dark:bg-[#0A0A0B] flex flex-col font-sans overflow-hidden select-none">
+      {/* Top Branding Section */}
       <div
-        className="relative h-[40dvh] w-full overflow-hidden flex flex-col items-center justify-center"
+        className="relative h-[40dvh] min-h-[250px] w-full overflow-hidden flex flex-col items-center justify-center"
         style={{
-          background:
-            "var(--module-theme-gradient, linear-gradient(135deg, #588114 0%, #79ab1c 100%))",
+          background: "linear-gradient(135deg, #659116 0%, #588114 100%)",
         }}
       >
-        {/* Subtle Decorative Elements (No Blur) */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 right-0 w-64 h-64 border-word border-white/20 rounded-full -mr-20 -mt-20" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 border border-white/10 rounded-full -ml-16 -mb-16" />
+        {/* Subtle Decorative Curves */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-[-30%] right-[-20%] w-[320px] h-[320px] border border-white rounded-full" />
+          <div className="absolute bottom-[-20%] left-[-15%] w-[260px] h-[260px] border border-white rounded-full" />
         </div>
 
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative z-10 flex flex-col items-center gap-4"
+          className="relative z-10 flex flex-col items-center gap-3 text-center"
         >
-          <div className="w-24 h-24 bg-white rounded-[2.2rem] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-4 border-white/10 overflow-hidden p-2">
+          <div className="w-22 h-22 sm:w-24 sm:h-24 bg-white rounded-3xl flex items-center justify-center shadow-xl border border-white/20 overflow-hidden p-2">
             <img
               src={logoUrl || logoImg}
-              alt={companyName || "Logo"}
+              alt="Logo"
               className="w-full h-full object-contain"
               crossOrigin="anonymous"
               onError={(e) => {
@@ -175,59 +168,50 @@ export default function SignIn() {
             />
           </div>
           <div className="text-center">
-            <h1 className="text-white font-black text-4xl tracking-tighter leading-none mb-1 italic">
-              {(() => {
-                const name = String(companyName || "").trim()
-                const upper = name.toUpperCase()
-                if (upper === "SWITCHEATS" || upper === "SWITCH EATS") {
-                  return (
-                    <>
-                      SWITCH<span className="opacity-60">EATS</span>
-                    </>
-                  )
-                }
-                if (name.includes(" ")) {
-                  const parts = name.split(" ")
-                  const first = parts[0].toUpperCase()
-                  const rest = parts.slice(1).join(" ").toUpperCase()
-                  return (
-                    <>
-                      {first}<span className="opacity-60"> {rest}</span>
-                    </>
-                  )
-                }
-                return upper
-              })()}
+            <h1 className="text-white font-extrabold text-3xl sm:text-4xl tracking-tight leading-none mb-1">
+              {companyName || "Eatiefy"}
             </h1>
-            <div className="h-0.5 w-12 bg-white/40 mx-auto rounded-full" />
+            <p className="text-white/90 text-xs font-black uppercase tracking-widest">
+              FOOD DELIVERY &amp; MORE
+            </p>
           </div>
         </motion.div>
       </div>
 
-      {/* Bottom Form Section - 60% height, slightly overlapping */}
+      {/* Bottom Form Section */}
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="flex-1 bg-white dark:bg-[#0A0A0B] rounded-t-[40px] -mt-10 relative z-20 shadow-[0_-20px_40px_rgba(0,0,0,0.05)] px-6 pt-10 pb-6 flex flex-col"
+        className="flex-1 bg-white dark:bg-[#121620] rounded-t-[40px] -mt-10 relative z-20 shadow-[0_-20px_40px_rgba(0,0,0,0.05)] px-6 pt-8 pb-6 flex flex-col justify-between"
       >
-        <div className="max-w-md mx-auto w-full flex flex-col h-full">
-          <div className="space-y-2 mb-10">
-            <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
-              Get Started
-            </h2>
-            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              Enter your mobile number to continue.
-            </p>
-          </div>
+        <div className="max-w-md mx-auto w-full flex flex-col h-full justify-between">
+          <div>
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-6" />
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-4">
-              <div className="relative group transition-all duration-300">
-                <div className="flex items-center gap-0 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus-within:border-[#E2AD4B]/50 focus-within:ring-4 focus-within:ring-[#E2AD4B]/5 transition-all overflow-hidden">
-                  <div className="flex items-center px-4 h-16 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white font-black text-lg border-r border-zinc-200 dark:border-zinc-800">
+            <div className="space-y-1 mb-6">
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                Get Started
+              </h2>
+              <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+                Enter your mobile number to continue.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <div className={`relative flex items-center bg-[#f4f4f5] dark:bg-gray-900 border-2 rounded-2xl transition-all duration-200 overflow-hidden shadow-sm ${
+                  isValidPhone 
+                    ? "border-[#659116] ring-4 ring-[#659116]/10" 
+                    : error 
+                    ? "border-red-500 ring-4 ring-red-500/10" 
+                    : "border-[#659116] focus-within:ring-4 focus-within:ring-[#659116]/10"
+                }`}>
+                  <div className="flex items-center gap-1.5 px-4 py-4 bg-[#f4f4f5] dark:bg-gray-800 text-gray-900 dark:text-white font-black text-lg border-r border-[#659116]/30 flex-shrink-0 select-none">
+                    <span>🇮🇳</span>
                     <span>+91</span>
                   </div>
+
                   <Input
                     id="phone"
                     name="phone"
@@ -237,45 +221,58 @@ export default function SignIn() {
                     placeholder="Mobile Number"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="flex-1 h-16 text-lg bg-transparent text-zinc-900 dark:text-white border-0 outline-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 font-black placeholder:text-zinc-300 dark:placeholder:text-zinc-700 tracking-widest px-5"
+                    className="flex-1 h-16 text-lg font-black text-gray-900 dark:text-white bg-transparent border-0 outline-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 tracking-wider px-4 placeholder:text-gray-400 dark:placeholder:text-gray-600 placeholder:font-normal"
                   />
+
+                  {isValidPhone && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="pr-4 text-[#659116]">
+                      <ShieldCheck className="w-5 h-5 fill-[#659116]/20" />
+                    </motion.div>
+                  )}
                 </div>
+
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-1.5 text-xs font-bold text-red-500 pl-1 pt-0.5"
+                  >
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    <span>{error}</span>
+                  </motion.div>
+                )}
               </div>
 
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-1.5 text-xs font-bold text-[#E2AD4B] pl-2"
-                >
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  <span>{error}</span>
-                </motion.div>
-              )}
-            </div>
+              <button
+                type="submit"
+                disabled={isLoading || !isValidPhone}
+                className={`w-full h-16 rounded-2xl font-black text-base uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+                  isValidPhone && !isLoading
+                    ? "bg-[#659116] hover:bg-[#588114] text-white shadow-[0_8px_20px_rgba(101,145,22,0.35)] active:scale-[0.98] cursor-pointer"
+                    : "bg-[#659116]/60 text-white/80 cursor-not-allowed shadow-none opacity-80"
+                }`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-white" />
+                    <span>Verifying...</span>
+                  </div>
+                ) : (
+                  <>
+                    <span>CONTINUE</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
 
-            <Button
-              type="submit"
-              disabled={isLoading || formData.phone.length !== 10}
-              className="w-full h-16 bg-[#E2AD4B] hover:bg-[#D40261] text-white font-black text-base uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-[0_12px_24px_rgba(226,173,75,0.3)] hover:shadow-[0_16px_32px_rgba(226,173,75,0.4)] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Verifying...</span>
-                </div>
-              ) : (
-                "Continue"
-              )}
-            </Button>
-          </form>
-
-          <footer className="mt-auto pt-10 text-center">
-            <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-medium tracking-wide uppercase">
-              By joining, you agree to our policies
+          <footer className="mt-8 text-center border-t border-gray-100 dark:border-gray-800/80 pt-4 space-y-1">
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold tracking-wide uppercase">
+              BY JOINING, YOU AGREE TO OUR POLICIES
             </p>
-            <p className="text-[10px] text-zinc-300 dark:text-zinc-700 font-bold mt-2 uppercase tracking-widest">
-              <Link to="/food/user/profile/terms" className="hover:text-[#E2AD4B]">Terms</Link> • <Link to="/food/user/profile/privacy" className="hover:text-[#E2AD4B]">Privacy</Link> • <Link to="/food/user/profile/help-content" className="hover:text-[#E2AD4B]">Support</Link>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 font-extrabold uppercase tracking-widest">
+              <Link to="/food/user/profile/terms" className="hover:text-[#659116]">TERMS</Link> • <Link to="/food/user/profile/privacy" className="hover:text-[#659116]">PRIVACY</Link> • <Link to="/food/user/profile/help-content" className="hover:text-[#659116]">SUPPORT</Link>
             </p>
           </footer>
         </div>

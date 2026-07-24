@@ -1,23 +1,20 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, Loader2, AlertCircle, Smartphone } from "lucide-react"
+import { ArrowLeft, Loader2, AlertCircle, Smartphone, ShieldCheck, RefreshCw, Edit2 } from "lucide-react"
 import AnimatedPage from "@food/components/user/AnimatedPage"
 import { Input } from "@food/components/ui/input"
-import { Button } from "@food/components/ui/button"
 import apiClient, { authAPI } from "@food/api"
 import { setAuthData as setUserAuthData } from "@food/utils/auth"
 import { resolveDeviceFcmToken, registerWebPushForCurrentModule } from "@food/utils/firebaseMessaging"
 import { motion, AnimatePresence } from "framer-motion"
-import loginBanner from "@food/assets/loginbanner.png"
 
 const FULL_NAME_REGEX = /^[A-Za-z ]+$/
 
 export default function OTP() {
   const navigate = useNavigate()
-  const [otp, setOtp] = useState(["", "", "", ""]) // exactly 4 digits
+  const [otp, setOtp] = useState(["", "", "", ""]) // 4 digits
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
   const [resendTimer, setResendTimer] = useState(0)
   const [authData, setAuthData] = useState(null)
   const [showNameInput, setShowNameInput] = useState(false)
@@ -25,9 +22,6 @@ export default function OTP() {
   const [nameError, setNameError] = useState("")
   const [verifiedData, setVerifiedData] = useState(null)
   const [contactInfo, setContactInfo] = useState("")
-  const [contactType, setContactType] = useState("phone")
-  const [deviceToken, setDeviceToken] = useState(null)
-  const [activePlatform, setActivePlatform] = useState("web")
   const inputRefs = useRef([])
   const submittingRef = useRef(false)
 
@@ -49,10 +43,8 @@ export default function OTP() {
     setAuthData(data)
 
     if (data.method === "email" && data.email) {
-      setContactType("email")
       setContactInfo(data.email)
     } else if (data.phone) {
-      setContactType("phone")
       const phoneMatch = data.phone?.match(/(\+\d+)\s*(.+)/)
       if (phoneMatch) {
         setContactInfo(`${phoneMatch[1]}-${phoneMatch[2].replace(/\D/g, "")}`)
@@ -82,7 +74,6 @@ export default function OTP() {
     }
   }, [showNameInput])
 
-  // Warm notification permission on first OTP interaction (needs a user gesture).
   const ensureNotificationPermission = async () => {
     try {
       if (typeof Notification === "undefined") return
@@ -148,7 +139,7 @@ export default function OTP() {
     const code = (otpValue || otp.join("")).replace(/\D/g, "")
     const code4 = code.slice(0, 4)
     if (code4.length !== 4) {
-      setError("OTP must be exactly 4 digits")
+      setError("OTP must be 4 digits")
       return
     }
 
@@ -172,16 +163,6 @@ export default function OTP() {
       } catch (e) {
         console.warn("Failed to get FCM token during login", e);
       }
-
-      if (!fcmToken && typeof Notification !== "undefined" && Notification.permission === "denied") {
-        console.warn(
-          "[FCM] Browser notification permission is BLOCKED. Token cannot be created. " +
-            "Chrome → site settings → Notifications → Allow for this site, then login again.",
-        );
-      }
-
-      setDeviceToken(fcmToken);
-      setActivePlatform(platform);
 
       const response = await authAPI.verifyOTP(
         phone, code4, purpose, providedName, email, "user", null, referralCode, fcmToken, platform
@@ -209,14 +190,12 @@ export default function OTP() {
       sessionStorage.removeItem("userAuthData")
       setUserAuthData("user", accessToken, user, refreshToken)
       window.dispatchEvent(new Event("userAuthChanged"))
-      // Force sync after login (bypass throttle / recover after logout).
       await registerWebPushForCurrentModule("/food/user", { force: true }).catch(() => {})
-      setSuccess(true)
-      setTimeout(() => navigate("/food/user"), 600)
+      setTimeout(() => navigate("/food/user"), 400)
     } catch (err) {
       const status = err?.response?.status
       let message = err?.response?.data?.message || err?.response?.data?.error || err?.message || "Verification failed."
-      if (status === 401) message = "Invalid or expired code."
+      if (status === 401) message = "Invalid or expired OTP code."
       setError(message)
     } finally {
       setIsLoading(false)
@@ -242,7 +221,6 @@ export default function OTP() {
     try {
       const { accessToken, refreshToken, user } = verifiedData
 
-      // Update name via profile API
       try {
         await apiClient.patch("/food/user/profile", 
           { name: normalizedName },
@@ -256,8 +234,7 @@ export default function OTP() {
       setUserAuthData("user", accessToken, { ...user, name: normalizedName }, refreshToken)
       window.dispatchEvent(new Event("userAuthChanged"))
       await registerWebPushForCurrentModule("/food/user", { force: true }).catch(() => {})
-      setSuccess(true)
-      setTimeout(() => navigate("/food/user"), 600)
+      setTimeout(() => navigate("/food/user"), 400)
     } catch (err) {
       setError("Failed to complete registration. Please try again.")
     } finally {
@@ -286,42 +263,66 @@ export default function OTP() {
   if (!authData) return null
 
   return (
-    <AnimatedPage className="min-h-[100dvh] bg-white dark:bg-[#0A0A0B] flex flex-col font-sans overflow-hidden">
-      {/* Top Branding Section - 35% height */}
-      <div className="relative h-[35dvh] w-full bg-[#E2AD4B] overflow-hidden flex flex-col items-center justify-center">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-64 h-64 border border-white/20 rounded-full -ml-20 -mt-20" />
-          <div className="absolute bottom-10 right-0 w-32 h-32 border border-white/10 rounded-full -mr-16" />
+    <AnimatedPage className="min-h-[100dvh] bg-white dark:bg-[#0A0A0B] flex flex-col font-sans overflow-hidden select-none">
+      {/* Top Header Section */}
+      <div 
+        className="relative h-[36dvh] min-h-[250px] w-full overflow-hidden flex flex-col items-center justify-center"
+        style={{
+          background: "linear-gradient(135deg, #659116 0%, #588114 100%)",
+        }}
+      >
+        {/* Back button */}
+        <button
+          onClick={() => navigate("/food/user/auth/login")}
+          className="absolute top-6 left-6 p-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all cursor-pointer z-20 shadow-md"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+
+        {/* Background Decorative Circles */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-[-30%] right-[-20%] w-[320px] h-[320px] border border-white rounded-full" />
+          <div className="absolute bottom-[-20%] left-[-15%] w-[260px] h-[260px] border border-white rounded-full" />
         </div>
 
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="relative z-10 flex flex-col items-center gap-4 px-6 text-center"
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="relative z-10 flex flex-col items-center gap-3 px-6 text-center"
         >
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-lg mb-2">
-            <Smartphone className="w-8 h-8 text-white" />
+          {/* Glass Icon Card */}
+          <div className="w-18 h-18 bg-white/25 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/40 shadow-xl mb-1">
+            <Smartphone className="w-9 h-9 text-white drop-shadow" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-white font-black text-3xl tracking-tight italic">
+            <h1 className="text-white font-black text-2xl sm:text-3xl tracking-wide uppercase drop-shadow-sm">
               {showNameInput ? "ONE LAST STEP" : "VERIFICATION"}
             </h1>
-            <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em]">
-              {showNameInput ? "Tell us your name" : `Sent to ${contactInfo}`}
-            </p>
+            <div className="flex items-center justify-center gap-1.5 text-white/90 text-xs font-black uppercase tracking-wider">
+              <span>{showNameInput ? "Tell us your name" : `SENT TO ${contactInfo}`}</span>
+              {!showNameInput && (
+                <button
+                  onClick={() => navigate("/food/user/auth/login")}
+                  className="p-1 hover:text-white transition-colors cursor-pointer"
+                  title="Edit Phone Number"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Bottom Content Section - 65% height */}
+      {/* Bottom Sheet Card */}
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="flex-1 bg-white dark:bg-[#0A0A0B] rounded-t-[40px] -mt-10 relative z-20 shadow-[0_-20px_40px_rgba(0,0,0,0.05)] px-6 pt-12 pb-6 flex flex-col"
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="flex-1 bg-white dark:bg-[#121620] rounded-t-[40px] -mt-8 relative z-20 shadow-[0_-15px_40px_rgba(0,0,0,0.08)] px-6 pt-8 pb-6 flex flex-col justify-between"
       >
-        <div className="max-w-md mx-auto w-full flex flex-col h-full">
+        <div className="max-w-md mx-auto w-full flex flex-col h-full justify-between">
           <AnimatePresence mode="wait">
             {!showNameInput ? (
               <motion.div
@@ -329,15 +330,26 @@ export default function OTP() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-10"
+                className="space-y-8"
               >
-                <div className="flex justify-center gap-4">
+                {/* Instruction Heading */}
+                <div className="text-center space-y-1">
+                  <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
+                    Enter 4-Digit Verification Code
+                  </h2>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    We&apos;ve sent an SMS with your code
+                  </p>
+                </div>
+
+                {/* 4 Digit OTP Inputs */}
+                <div className="flex justify-center gap-3 sm:gap-4">
                   {otp.map((digit, index) => (
                     <motion.div
                       key={index}
-                      initial={{ scale: 0.8, opacity: 0 }}
+                      initial={{ scale: 0.85, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.1 * index }}
+                      transition={{ delay: 0.06 * index }}
                       className="relative"
                     >
                       <input
@@ -351,111 +363,131 @@ export default function OTP() {
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={index === 0 ? handlePaste : undefined}
                         disabled={isLoading}
-                        className="w-16 h-20 text-center text-3xl font-black bg-zinc-100 dark:bg-zinc-900 border-2 border-transparent focus:border-[#E2AD4B] rounded-2xl text-zinc-900 dark:text-white transition-all outline-none shadow-sm"
+                        className={`w-15 h-18 sm:w-16 sm:h-20 text-center text-3xl font-black rounded-2xl bg-gray-50 dark:bg-gray-900 border-2 transition-all outline-none shadow-sm ${
+                          digit 
+                            ? "border-[#659116] bg-emerald-50/30 dark:bg-emerald-950/20 text-gray-900 dark:text-white ring-4 ring-[#659116]/10" 
+                            : "border-gray-200 dark:border-gray-800 focus:border-[#659116] focus:ring-4 focus:ring-[#659116]/10 text-gray-900 dark:text-white"
+                        }`}
                       />
                       {digit && (
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#E2AD4B] rounded-full" />
+                        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#659116] rounded-full" />
                       )}
                     </motion.div>
                   ))}
                 </div>
 
+                {/* Error Banner */}
                 {error && (
                   <motion.div
-                    initial={{ opacity: 0, y: -5 }}
+                    initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-center gap-2 text-xs font-bold text-[#E2AD4B] bg-[#E2AD4B]/5 py-4 px-4 rounded-2xl border border-[#E2AD4B]/10"
+                    className="flex items-center justify-center gap-2 text-xs font-bold text-red-500 bg-red-50 dark:bg-red-950/20 py-3.5 px-4 rounded-2xl border border-red-200 dark:border-red-900/40"
                   >
                     <AlertCircle className="h-4 w-4 shrink-0" />
                     <span>{error}</span>
                   </motion.div>
                 )}
 
-                <div className="text-center space-y-6">
+                {/* Timer & Resend */}
+                <div className="text-center space-y-4">
                   {resendTimer > 0 ? (
-                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                      Resend code in <span className="text-zinc-900 dark:text-white">{resendTimer}s</span>
-                    </p>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800/80 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#659116]" />
+                      <span>Resend code in <strong className="text-gray-900 dark:text-white">{resendTimer}s</strong></span>
+                    </div>
                   ) : (
                     <button
                       type="button"
                       onClick={handleResend}
                       disabled={isLoading}
-                      className="text-xs font-black text-[#E2AD4B] uppercase tracking-[0.2em] px-6 py-2 rounded-full bg-[#E2AD4B]/5 hover:bg-[#E2AD4B]/10 transition-colors"
+                      className="inline-flex items-center gap-2 text-xs font-black text-[#659116] hover:text-[#588114] uppercase tracking-wider px-5 py-2.5 rounded-full bg-[#659116]/10 hover:bg-[#659116]/20 transition-all cursor-pointer"
                     >
-                      Resend Now
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Resend Code Now</span>
                     </button>
                   )}
 
-                  <Button
-                    onClick={() => navigate("/food/user/auth/login")}
-                    variant="ghost"
-                    className="text-zinc-400 dark:text-zinc-600 font-bold text-[10px] uppercase tracking-widest hover:bg-transparent hover:text-zinc-900"
-                  >
-                    Edit Phone Number
-                  </Button>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/food/user/auth/login")}
+                      className="text-gray-400 dark:text-gray-500 font-bold text-xs uppercase tracking-wider hover:text-[#659116] transition-colors cursor-pointer inline-flex items-center gap-1"
+                    >
+                      <span>Edit Phone Number</span>
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ) : (
+              /* Name Setup View */
               <motion.div
                 key="name-view"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="space-y-8"
+                className="space-y-6"
               >
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] ml-1">
-                      Full Name
-                    </label>
-                    <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus-within:border-[#E2AD4B]/50 focus-within:ring-4 focus-within:ring-[#E2AD4B]/5 transition-all overflow-hidden">
-                      <Input
-                        type="text"
-                        value={name}
-                        onChange={(e) => {
-                          const sanitized = e.target.value.replace(/[^A-Za-z ]/g, "")
-                          setName(sanitized)
-                          if (nameError) setNameError("")
-                        }}
-                        disabled={isLoading}
-                        placeholder="e.g. Aman Kuril"
-                        className="h-16 bg-transparent border-0 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-xl font-black placeholder:text-zinc-300 dark:placeholder:text-zinc-700 px-6"
-                      />
-                    </div>
+                <div className="space-y-1 text-center">
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                    What should we call you? 😃
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Enter your full name to complete your profile
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1">
+                    Full Name
+                  </label>
+                  <div className="bg-gray-50 dark:bg-gray-900 border-2 border-[#659116] rounded-2xl focus-within:ring-4 focus-within:ring-[#659116]/10 transition-all overflow-hidden">
+                    <Input
+                      type="text"
+                      value={name}
+                      onChange={(e) => {
+                        const sanitized = e.target.value.replace(/[^A-Za-z ]/g, "")
+                        setName(sanitized)
+                        if (nameError) setNameError("")
+                      }}
+                      disabled={isLoading}
+                      placeholder="e.g. Rahul Sharma"
+                      className="h-16 bg-transparent border-0 outline-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg font-black text-gray-900 dark:text-white px-5 placeholder:text-gray-400 placeholder:font-normal"
+                    />
                   </div>
                   {nameError && (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-xs font-bold text-[#E2AD4B] pl-2"
-                    >
+                    <p className="text-xs font-bold text-red-500 pl-1 pt-0.5">
                       {nameError}
-                    </motion.p>
+                    </p>
                   )}
                 </div>
 
-                <Button
+                <button
                   onClick={handleSubmitName}
                   disabled={isLoading || name.trim().length < 2}
-                  className="w-full h-16 bg-[#E2AD4B] hover:bg-[#D40261] text-white font-black text-base uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-[0_12px_24px_rgba(226,173,75,0.3)] active:scale-[0.98]"
+                  className={`w-full h-16 rounded-2xl font-black text-base uppercase tracking-widest transition-all duration-300 shadow-md ${
+                    name.trim().length >= 2 && !isLoading
+                      ? "bg-[#659116] hover:bg-[#588114] text-white shadow-[#659116]/20 cursor-pointer active:scale-[0.98]"
+                      : "bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed shadow-none"
+                  }`}
                 >
                   {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin text-white" />
                       <span>Saving Profile...</span>
                     </div>
                   ) : (
                     "Complete Setup"
                   )}
-                </Button>
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <footer className="mt-auto pt-10 text-center">
-            <p className="text-[9px] text-zinc-300 dark:text-zinc-700 font-black uppercase tracking-[0.4em]">
-              SwitchEats Secure Network
-            </p>
+          {/* Footer Security Badge */}
+          <footer className="mt-8 text-center border-t border-gray-100 dark:border-gray-800/80 pt-4">
+            <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-gray-500 dark:text-gray-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#659116]" />
+              <span>EATIEFY SECURE NETWORK</span>
+            </div>
           </footer>
         </div>
       </motion.div>
