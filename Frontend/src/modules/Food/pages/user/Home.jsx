@@ -624,6 +624,7 @@ const RestaurantCard = React.memo(({
   restaurantSlug: propRestaurantSlug,
   onNavigateAway,
 }) => {
+  const navigate = useNavigate();
   const [slideIndex, setSlideIndex] = useState(0);
   const [offerIndex, setOfferIndex] = useState(0);
   const validRecommendedItems = useMemo(() => {
@@ -705,7 +706,7 @@ const RestaurantCard = React.memo(({
             className="relative block cursor-pointer"
             onClick={(e) => {
               if (e.defaultPrevented) return;
-              onNavigateAway?.();
+              try { onNavigateAway?.(e); } catch (_) {}
               navigate(targetUrl);
             }}
           >
@@ -3370,7 +3371,7 @@ export default function Home() {
                       <div
                         onClick={(e) => {
                           if (e.defaultPrevented) return;
-                          captureScrollBeforeRestaurantNav(e);
+                          try { captureHomeScrollBeforeLeave(); } catch (_) {}
                           navigate(`/food/user/restaurants/${restaurantSlug}`);
                         }}
                         className="block rounded-[20px] overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1a1a] shadow-sm hover:shadow-md transition-shadow cursor-pointer">
@@ -3524,7 +3525,7 @@ export default function Home() {
                       onToggleFavorite={handleToggleFavorite}
                       BACKEND_ORIGIN={BACKEND_ORIGIN}
                       restaurantSlug={restaurantSlug}
-                      onNavigateAway={captureScrollBeforeRestaurantNav}
+                      onNavigateAway={captureHomeScrollBeforeLeave}
                     />
                   );
                 })}
