@@ -3416,10 +3416,10 @@ export default function Home() {
         <div ref={categoryAnchorRef} aria-hidden="true" />
 
         {/* Category Rail — permanently sticky using native CSS for 0 latency. */}
-        <div className={`sticky top-[72px] z-[50] transition-all duration-300 ${
+        <div className={`sticky top-[71px] z-[50] -mt-px transition-all duration-300 ${
           isCategoryStuck 
-            ? 'bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-md border-b border-gray-200/40 dark:border-gray-800/40' 
-            : 'bg-transparent'
+            ? 'bg-white dark:bg-[#1a1a1a] border-none shadow-none outline-none' 
+            : 'bg-transparent border-none shadow-none outline-none'
         }`}>
           {CategoryRailSection}
         </div>
